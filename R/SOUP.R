@@ -32,24 +32,27 @@
 SOUP <- function(expr, Ks=3, 
                  type="count", 
                  i.pure=NULL, ext.prop=NULL, pure.prop=0.5,
-                 nPC=NULL) {
+                 nPC=NULL, verbose=FALSE) {
   if (! type %in% c("count", "log")) {
     stop("Data type must be eiter 'count' or 'log'.")
   }
-
-  ## for raw counts, normalize and log-transform
+  
+  ## for raw counts, normalize
   if (type == "count") {
     expr = scaleRowSums(expr) * 10^6
-    expr = log2(expr + 1)
   }
   
   ## cell-cell similarity matrix
-  cat("Computing similarity matrix...\n")
-  A = getSimilarity(expr, type="log")
+  if (verbose) {
+    cat("Computing similarity matrix...\n")
+  }
+  A = getSimilarity(expr, type=type)
   
   ## find pure cells by ranking the purity score
   if (is.null(i.pure)) {
-    cat("Finding pure cells...\n")
+    if (verbose) {
+      cat("Finding pure cells...\n")
+    }
     purity.out = findPure(A=A,
                           ext.prop=ext.prop, 
                           pure.prop=pure.prop)
@@ -59,15 +62,22 @@ SOUP <- function(expr, Ks=3,
     purity=NULL
   }
   
+ 
   ## SVD: only do it once
-  cat("SVD...\n")
-  G = RSpectra::eigs(A, max(nPC, max(Ks), na.rm=TRUE))$vectors
+  if (type == "count") {
+    G = RSpectra::eigs(A, max(nPC, max(Ks), na.rm=TRUE))$vectors
+  } else {
+    G = RSpectra::svds(expr, max(nPC, max(Ks), na.rm=TRUE))$u
+  }
   
   ## SOUP
   memberships = list()
   centers = list()
   for (K in Ks) {
-    cat("Clustering with K =", K, "...\n")
+    if (verbose) {
+      cat("Clustering with K =", K, "...\n")
+    }
+    
     ## by default nPC=K, and should be at least K
     if (is.null(nPC)) {
       nPC = K
@@ -88,7 +98,6 @@ SOUP <- function(expr, Ks=3,
     centers = c(centers, list(opt.out$center))
   }
   
-  cat("SOUP is finished.\n")
   return(list(Ks=Ks,
               memberships=memberships,
               centers=centers,
@@ -266,23 +275,30 @@ getSimilarity <- function(expr, type="count",
   
   ## for raw counts, normalize and log-transform
   if (type == "count") {
-    expr = scaleRowSums(expr) * 10^6
-    expr = log2(expr + 1)
-  }
-  
-  ## similarity matrix: covariance, correlation, or inner product?
-  ## For now, inner product works the best.
-  if (method == "cov") {
-    A = cov(t(expr))
-  } else if (method == "cor") {
-    A = cor(t(expr))
-  } else if (method == "inner") {
+    depths = rowSums(expr)
+    A = expr %*% t(expr) - diag(depths)
+  } else if (type == "log") {
     ## center by genes is helpful
     expr = scale(expr, center=TRUE, scale=FALSE)
     A = expr %*% t(expr)
   } else {
-    stop("Similarity method must be 'cov', 'cor', or 'inner'.")
+    stop("data type must be 'count' or 'log'.\n")
   }
+  
+  # 
+  # ## similarity matrix: covariance, correlation, or inner product?
+  # ## For now, inner product works the best.
+  # if (method == "cov") {
+  #   A = cov(t(expr))
+  # } else if (method == "cor") {
+  #   A = cor(t(expr))
+  # } else if (method == "inner") {
+  #   ## center by genes is helpful
+  #   expr = scale(expr, center=TRUE, scale=FALSE)
+  #   A = expr %*% t(expr)
+  # } else {
+  #   stop("Similarity method must be 'cov', 'cor', or 'inner'.")
+  # }
   return (A) 
 }
 

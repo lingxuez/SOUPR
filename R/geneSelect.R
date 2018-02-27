@@ -97,8 +97,7 @@ DESCENDselect <- function(counts, n.cores=1, threshold=3) {
                        do.LRT.test = FALSE,
                        family = "Poisson")
   
-  hvg <- findHVG(result, criteria="Gini",
-                 plot.result=FALSE)
+  hvg <- findHVG(result, criteria="Gini")
   i.select <- match(hvg$HVG.genes, colnames(counts))
   
   return(list(i.select=i.select,
