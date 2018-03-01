@@ -65,9 +65,9 @@ SOUP <- function(expr, Ks=3,
  
   ## SVD: only do it once
   if (type == "count") {
-    G = RSpectra::eigs(A, max(nPC, max(Ks), na.rm=TRUE))$vectors
+    G = RSpectra::eigs_sym(A, k=max(nPC, max(Ks), na.rm=TRUE))$vectors
   } else {
-    G = RSpectra::svds(expr, max(nPC, max(Ks), na.rm=TRUE))$u
+    G = RSpectra::svds(expr, k=max(nPC, max(Ks), na.rm=TRUE))$u
   }
   
   ## SOUP

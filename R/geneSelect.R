@@ -43,16 +43,18 @@ selectGenes <- function(expr, type="count",
   cat("Selecting from remaining", ncol(expr), "genes...\n")
   
   ## Gene selection
-  i.select=c()
+  select.genes = c()
   results = list()
   
   if (SPCA) {
     cat("SPCA selection...\n")
     spca.out = SPCAselect(expr=expr, type=type, 
                           sumabs=sumabs, nPC=nPC)
-    i.select = c(i.select, spca.out$i.select)
+    spca.genes = spca.out$select.genes
+    select.genes = c(select.genes, spca.genes)
     results = c(results, 
-                list(spca.vectors=spca.out$vectors))
+                list(spca.vectors=spca.out$vectors,
+                     spca.genes=spca.genes))
   }
   
   if (DESCEND) {
@@ -64,14 +66,16 @@ selectGenes <- function(expr, type="count",
     }
     descend.out = DESCENDselect(counts=expr, n.cores=n.cores, 
                                 threshold=threshold)
-    i.select = c(i.select, descend.out$i.select)
+    descend.genes = descend.out$select.genes
+    select.genes = c(select.genes, descend.genes)
     results = c(results, 
-                list(descend.scores=descend.out$scores))
+                list(descend.scores=descend.out$scores,
+                     descend.genes=descend.genes))
   }
   
   ## final list of genes
-  i.select = unique(i.select)
-  results$select.genes = colnames(expr)[i.select]
+  select.genes = unique(select.genes)
+  results$select.genes = select.genes
   
   return(results)
 }
@@ -85,7 +89,7 @@ selectGenes <- function(expr, type="count",
 #' @param threshold the threshold for Gini index. Higer threshold leads to fewer selected genes.
 #' 
 #' @return A list containing \describe{
-#'   \item{i.select}{the indices of selected genes.}
+#'   \item{select.genes}{the names of selected genes, ordered by decreasing scores.}
 #'   \item{scores}{a score matrix containing the Gini scores of all genes.}
 #' }
 #' 
@@ -98,9 +102,8 @@ DESCENDselect <- function(counts, n.cores=1, threshold=3) {
                        family = "Poisson")
   
   hvg <- findHVG(result, criteria="Gini")
-  i.select <- match(hvg$HVG.genes, colnames(counts))
   
-  return(list(i.select=i.select,
+  return(list(select.genes = hvg$HVG.genes,
               scores=hvg$score.mat))
 }
 
@@ -115,7 +118,7 @@ DESCENDselect <- function(counts, n.cores=1, threshold=3) {
 #' @param nPC the number of sparse singular vectors to look into.
 #' 
 #' @return A list containing \describe{
-#'   \item{i.select}{the indices of selected genes.}
+#'   \item{select.genes}{the names of selected genes, ordered by decreasing importance.}
 #'   \item{vectors}{a gene-by-nPC matrix of the sparse eigen vectors.}
 #' }
 #' 
@@ -150,8 +153,11 @@ SPCAselect <- function(expr, type="log", sumabs=0.05, nPC=3) {
                       trace=FALSE)
   
   ## selected genes
-  i.select <- which(rowSums(abs(spca.out$v)) != 0)
+  gene.scores = rowSums((spca.out$v)^2)
+  select.genes = colnames(expr)[order(gene.scores, decreasing = TRUE)[1:sum(gene.scores > 0)]]
+  vectors=spca.out$v
+  row.names(vectors) = colnames(expr)
   
-  return(list(i.select=i.select,
-              vectors=spca.out$v))
+  return(list(select.genes = select.genes,
+              vectors=vectors))
 }
