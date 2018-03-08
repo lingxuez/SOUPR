@@ -32,7 +32,7 @@
 SOUP <- function(expr, Ks=3, 
                  type="count", 
                  i.pure=NULL, ext.prop=NULL, pure.prop=0.5,
-                 nPC=NULL, verbose=FALSE) {
+                 nPC=NULL, nstart=50, verbose=FALSE) {
   if (! type %in% c("count", "log")) {
     stop("Data type must be eiter 'count' or 'log'.")
   }
@@ -64,29 +64,26 @@ SOUP <- function(expr, Ks=3,
   
  
   ## SVD: only do it once
-  if (type == "count") {
-    G = RSpectra::eigs_sym(A, k=max(nPC, max(Ks), na.rm=TRUE))$vectors
-  } else {
+  # if (type == "count") {
+  #   G = RSpectra::eigs_sym(A, k=max(nPC, max(Ks), na.rm=TRUE))$vectors
+  # } else {
     G = RSpectra::svds(expr, k=max(nPC, max(Ks), na.rm=TRUE))$u
-  }
+  # }
   
   ## SOUP
   memberships = list()
   centers = list()
   for (K in Ks) {
-    if (verbose) {
-      cat("Clustering with K =", K, "...\n")
-    }
-    
     ## by default nPC=K, and should be at least K
-    if (is.null(nPC)) {
-      nPC = K
-    }
     nPC = max(nPC, K, na.rm=TRUE)
+    if (verbose) {
+      cat("Clustering with K =", K, ", nPC=", nPC, "...\n",
+          sep="")
+    }
     
     ## pure cells partition by K-means
     km.pure = kmeans(expr[i.pure, ], centers=K, 
-                     nstart=20, iter.max=50)
+                     nstart=nstart, iter.max=50)
     
     ## solve for theta
     opt.out = getTheta(expr=expr,
@@ -100,6 +97,7 @@ SOUP <- function(expr, Ks=3,
   
   return(list(Ks=Ks,
               memberships=memberships,
+              pure.cluster=km.pure$cluster,
               centers=centers,
               purity=purity,
               i.pure=i.pure))
@@ -128,8 +126,10 @@ findPure <- function(A, ext.prop = NULL, pure.prop = 0.5) {
   if (is.null(ext.prop)) {
     if (n < 1e3) {
       ext.prop = 0.1
-    } else {
+    } else if (n < 2*1e3) {
       ext.prop = 0.05
+    } else {
+      ext.prop = 0.03
     }
   }
   ## for stable results, require at least 5 cells in the extreme neighbors
@@ -270,8 +270,7 @@ scaleRowSums <- function(x) {
 #' @param method the method to measure similarity between cells, one of \{"cov", "cor", "inner\},
 #'
 #' @return The cell-cell similarity matrix.
-getSimilarity <- function(expr, type="count",
-                          method="inner") {
+getSimilarity <- function(expr, type="count") {
   
   ## for raw counts, normalize and log-transform
   if (type == "count") {

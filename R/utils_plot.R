@@ -74,7 +74,7 @@ getMajorMatrix <- function(memberships, Ks, cell.type,
   }
   ## timeline
   last_membership = memberships[[n.K]][, i.permute]
-  timeline = rowSums(last_membership  %*% diag(c(1:max(Ks))))
+  timeline = rowSums(last_membership  %*% diag(c(1:ncol(last_membership))))
   
   ## reference type
   assign.Kseq = data.frame(assign.Kseq)
@@ -149,7 +149,7 @@ getPermute = function(est.label, true.label) {
     mapped.labels[mapped.labels==0] <- clust.remaining
   }
   
-  return(order(mapped.labels))
+  return(as.numeric(row.names(cont.table)[order(mapped.labels)]))
 }
 
 
