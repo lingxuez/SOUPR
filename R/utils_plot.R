@@ -6,10 +6,10 @@
 #' @param cell.type The golden standard cell types for reference.
 #' 
 #' @return A ggplot object.
-heatmapKseq <- function(memberships, Ks, cell.type) {
+heatmapKseq <- function(memberships, Ks, cell.type, ref.lab="Reference") {
   
   assign.out = getMajorMatrix(memberships, Ks, cell.type,
-                                type="hard")
+                              type="hard", ref.lab=ref.lab)
   ## order
   i.order = order(cell.type, assign.out$timeline)
   dat3 <- assign.out$assign.Kseq[i.order, ]
@@ -20,11 +20,10 @@ heatmapKseq <- function(memberships, Ks, cell.type) {
   dat3$value <- as.factor(dat3$value)
   
   K = length(table(dat3$value))
-  mycols = RColorBrewer::brewer.pal(K+1, "Spectral")[-c((K+1)/2+1)]
+  
   
   g <- ggplot2::ggplot(dat3, aes(Cell, variable)) +
     geom_tile(aes(fill = value)) +
-    scale_fill_manual(values=mycols) +
     labs(y="", x="Single Cells", fill="cluster") +
     theme(axis.line=element_blank(),
           axis.text.x=element_blank(),
@@ -36,6 +35,11 @@ heatmapKseq <- function(memberships, Ks, cell.type) {
           legend.direction="vertical",
           legend.title = element_text(size=15)
     )
+
+  if (K <= 10) {
+    mycols = RColorBrewer::brewer.pal(K+1, "Spectral")[-c((K+1)/2+1)]
+    g <- g + scale_fill_manual(values=mycols)
+  }
   
   return(g)
 }
@@ -46,7 +50,7 @@ heatmapKseq <- function(memberships, Ks, cell.type) {
 #' @export
 #' 
 getMajorMatrix <- function(memberships, Ks, cell.type,
-                            type="hard") {
+                            type="hard", ref.lab="Reference") {
   if (length(memberships) != length(Ks)) {
     stop("memberships and Ks must be two lists with same lengths.\n")
   }
@@ -63,11 +67,11 @@ getMajorMatrix <- function(memberships, Ks, cell.type,
     ## re-order the labels to match
     i.permute = getPermute(soup.label, cell.type)
     if (type == "hard") {
-      assign.Kseq[, i] <- apply(memberships[[i]][, i.permute], 
+      assign.Kseq[, i] <- apply(memberships[[i]][, i.permute, drop=FALSE], 
                                 1, nnet::which.is.max)
       assign.Kseq[i.na, i] <- NA
     } else {
-      assign.Kseq[, i] <- apply(memberships[[i]][, i.permute], 
+      assign.Kseq[, i] <- apply(memberships[[i]][, i.permute, drop=FALSE], 
                                 1, max)
     }
    
@@ -79,7 +83,7 @@ getMajorMatrix <- function(memberships, Ks, cell.type,
   ## reference type
   assign.Kseq = data.frame(assign.Kseq)
   assign.Kseq$Reference = as.numeric(as.factor(cell.type))
-  colnames(assign.Kseq) <- c(paste0("K=", Ks), "Reference")
+  colnames(assign.Kseq) <- c(paste0("K=", Ks), ref.lab)
   
   return(list(assign.Kseq=assign.Kseq,
               timeline=timeline,
@@ -154,6 +158,7 @@ getPermute = function(est.label, true.label) {
 
 
 plotContTable <- function(true_label, label_est, short.names=NULL, xlab="Reference") {
+  true_label = droplevels(true_label)
   if (is.null(short.names)) {
     short.names = levels(factor(true_label))
   }
