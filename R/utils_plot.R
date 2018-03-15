@@ -6,6 +6,8 @@
 #' @param cell.type The golden standard cell types for reference.
 #' 
 #' @return A ggplot object.
+#' 
+#' @export
 heatmapKseq <- function(memberships, Ks, cell.type, ref.lab="Reference") {
   
   assign.out = getMajorMatrix(memberships, Ks, cell.type,
@@ -99,6 +101,8 @@ getMajorMatrix <- function(memberships, Ks, cell.type,
 #' @param cell.type The golden standard cell types for reference.
 #' 
 #' @return A ggplot object.
+#' 
+#' @export
 heatmapKseqProp <- function(memberships, Ks, cell.type) {
   assign.out = getMajorMatrix(memberships, Ks, cell.type,
                               type="soft")
@@ -156,13 +160,28 @@ getPermute = function(est.label, true.label) {
   return(as.numeric(row.names(cont.table)[order(mapped.labels)]))
 }
 
-
-plotContTable <- function(true_label, label_est, short.names=NULL, xlab="Reference") {
-  true_label = droplevels(true_label)
+#' Visualize contingency table
+#' 
+#' @param true_label The true cell types, a vector of characters or factors
+#' @param est_label Estimated cluster assignments, a vector of characters or factors
+#' @param short.names (optional) If the true cell type names are too long, 
+#'         you can supply abbreviated names to save space in visualizations
+#' @param xlab (optional) The x-axis label; default is "Reference"
+#' 
+#' @return A ggplot object.
+#' 
+#' @export
+plotContTable <- function(true_label, est_label, short.names=NULL, xlab="Reference") {
+  if ("factor" %in% class(true_label)) {
+    true_label = droplevels(true_label)
+  }
+  if ("factor" %in% class(est_label)) {
+    est_label = droplevels(est_label)
+  }
   if (is.null(short.names)) {
     short.names = levels(factor(true_label))
   }
-  cont.table <- table(true_label, label_est)
+  cont.table <- table(true_label, est_label)
   K <- ncol(cont.table)
   sub.clusters <- paste0("cluster ", colnames(cont.table))
   
