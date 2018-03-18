@@ -1,10 +1,10 @@
 Package: SOUP
-Title: What the Package Does (one line, title case)
+Title: Semi-soft Clustering of Single Cell Data
 Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Authors@R: person("Lingxue", "Zhu", email = "lingxue.zhu@gmail.com", role = c("aut", "cre"))
+Description: SOUP, for Semi-sOft clUstering with Pure cells, is a single-cell clustering method that can classify both pure and transitional cells.
 Depends: R (>= 3.4.2)
-License: What license is it under?
+License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
 Imports: RSpectra,
@@ -20,7 +20,7 @@ Imports: RSpectra,
     methods,
     nnet,
     RColorBrewer,
-    ggplot2,
     PMA,
-    gplots
+    gplots,
+    ggplot2
 RoxygenNote: 6.0.1

@@ -1,36 +1,9 @@
-
-#' Predict the membership for new data points
-#' 
-#' @export
-#' 
-predictTheta <- function(new.expr, t.centers) {
-  n.cell = nrow(new.expr)
-  K = ncol(t.centers)
-  
-  ## solve for t(new.expr) = t(centers) %*% t(theta)
-  theta = matrix(0, nrow=n.cell, ncol=K)
-  for (i in c(1:n.cell)) {
-    theta[i, ] = limSolve::lsei(A = t.centers, 
-                                B = new.expr[i, ], 
-                                type=2)$X
-  }
-  row.names(theta) <- row.names(new.expr)
-  
-  ## clean up
-  theta[theta < 0] = 0
-  theta = scaleRowSums(theta)
-  theta[is.na(theta)] = 0
-  
-  return(theta)
-  
-}
-
 #' Cross Validation for SOUP
 #' 
 #' @export
 #' 
 cvSOUP <- function(expr, type="count", 
-                    nfold=10, nCV=10, Ks=c(2:10)) {
+                   nfold=10, nCV=10, Ks=c(2:10)) {
   
   cv.errors = matrix(NA, nrow=nCV, ncol=length(Ks))
   cv.sds = matrix(NA, nrow=nCV, ncol=length(Ks))
@@ -67,17 +40,26 @@ cvSOUP <- function(expr, type="count",
               K.majority=K.majority))
 }
 
-#' Cross Validation Errors
+#' Compute Cross Validation Errors
+#' 
+#' @param expr A cell-by-gene expression matrix, either the raw counts or log-transformed expressions. 
+#' @param type "log" if \code{expr} has been normalized and log-transformed (default),
+#'     or "count" (default) \code{expr} contains the raw counts.
+#' @param nfold Number of folds
+#' @param Ks A sequence of cluster numbers
 #' 
 #' @export
-cv.error.SOUP <- function(expr, type="count", 
-                    nfold=10, Ks=c(2:10)) {
+cv.error.SOUP <- function(expr, type="log", 
+                          nfold=10, Ks=c(2:10), seed=NULL) {
   n.sc = nrow(expr)
   cv.error = matrix(0, nrow=nfold, ncol=length(Ks))
   cv.aic = matrix(0, nrow=nfold, ncol=length(Ks))
   cv.bic = matrix(0, nrow=nfold, ncol=length(Ks))
   
-  ## permute
+  ## permute indices
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
   i.permute.ind = base::sample(c(1:n.sc), size=n.sc, replace=FALSE)
   fold.size = floor(n.sc / nfold)
   
@@ -112,7 +94,31 @@ cv.error.SOUP <- function(expr, type="count",
               cvsd = apply(cv.error, 2, sd),
               cvaic = colMeans(cv.aic),
               cvbic = colMeans(cv.bic)
-              ))
+  ))
+}
+
+
+#' Predict the membership for new data points
+#' 
+#' @export
+#' 
+predictTheta <- function(new.expr, t.centers) {
+  n.cell = nrow(new.expr)
+  K = ncol(t.centers)
+  
+  ## solve for t(new.expr) = t(centers) %*% t(theta)
+  theta = matrix(0, nrow=n.cell, ncol=K)
+  for (i in c(1:n.cell)) {
+    theta[i, ] = limSolve::lsei(A = t.centers, 
+                                B = new.expr[i, ], 
+                                type=2)$X
+  }
+  row.names(theta) <- row.names(new.expr)
+  
+  ## clean up
+  theta = projMembership(theta)
+  
+  return(theta)
 }
 
 

@@ -36,26 +36,21 @@ SOUP <- function(expr, Ks=3,
                  i.pure=NULL, ext.prop=NULL, pure.prop=0.5,
                  nPC=NULL, nstart=50, verbose=FALSE) {
   if (! type %in% c("count", "log")) {
-    stop("Data type must be eiter 'count' or 'log'.")
+    stop("Data type must be eiter 'log' or 'count'.")
   }
   
-  ## for raw counts, normalize
+  ## for raw counts, normalize by TPM
   if (type == "count") {
     expr = scaleRowSums(expr) * 10^6
   }
-  
-  ## cell-cell similarity matrix
-  if (verbose) {
-    cat("Computing similarity matrix...\n")
-  }
-  A = getSimilarity(expr, type=type)
   
   ## find pure cells by ranking the purity score
   if (is.null(i.pure)) {
     if (verbose) {
       cat("Finding pure cells...\n")
     }
-    purity.out = findPure(A=A,
+    purity.out = findPure(expr=expr,
+                          type=type,
                           ext.prop=ext.prop, 
                           pure.prop=pure.prop)
     i.pure = purity.out$i.pure
@@ -64,23 +59,19 @@ SOUP <- function(expr, Ks=3,
     purity=NULL
   }
   
- 
-  ## SVD: only do it once
-  # if (type == "count") {
-  #   G = RSpectra::eigs_sym(A, k=max(nPC, max(Ks), na.rm=TRUE))$vectors
-  # } else {
-    G = RSpectra::svds(expr, k=max(nPC, max(Ks), na.rm=TRUE))$u
-  # }
+  ## SVD
+  k.svd = max(nPC, max(Ks), na.rm=TRUE)
+  G = RSpectra::svds(expr, k=k.svd, nu=k.svd, nv=0)$u
   
   ## SOUP
   memberships = list()
   centers = list()
+  major.labels = list()
   for (K in Ks) {
     ## by default nPC=K, and should be at least K
     nPC = max(nPC, K, na.rm=TRUE)
     if (verbose) {
-      cat("Clustering with K =", K, ", nPC=", nPC, "...\n",
-          sep="")
+      cat("Clustering with K=", K, ", nPC=", nPC, "...\n",sep="")
     }
     
     ## pure cells partition by K-means
@@ -93,14 +84,19 @@ SOUP <- function(expr, Ks=3,
                        pure.cluster=km.pure$cluster, 
                        G=G[, 1:nPC])
     
+    ## major labels
+    major = apply(opt.out$membership, 1, nnet::which.is.max)
+    
+    ## record
     memberships = c(memberships, list(opt.out$membership))
     centers = c(centers, list(opt.out$center))
+    major.labels = c(major.labels, list(major))
   }
   
   return(list(Ks=Ks,
               memberships=memberships,
-              pure.cluster=km.pure$cluster,
               centers=centers,
+              major.labels=major.labels,
               purity=purity,
               i.pure=i.pure))
   
@@ -110,7 +106,9 @@ SOUP <- function(expr, Ks=3,
 #' 
 #' Find the list of pure cells with the highest purity scores.
 #' 
-#' @param A the cell-cell similarity matrix. 
+#' @param expr a cell-by-gene expression matrix, either the raw counts or log-transformed expressions. 
+#' @param type "log" if \code{expr} has been normalized and log-transformed (default),
+#'     or "count" (default) \code{expr} contains the raw counts.
 #' @param ext.prop (optional) the proportion of extreme neighbors for each cell, such that \code{ext.prop*n.cells} is roughly the number of pure cells \emph{per cluster}. 
 #' By default, \code{ext.prop=0.1} for less than 1,000 cells, and \code{ext.prop=0.05} for larger datasets.
 #' @param pure.prop (optional) the proportion of pure cells in the data. By default \code{pure.prop=0.5}.
@@ -121,7 +119,9 @@ SOUP <- function(expr, Ks=3,
 #' }
 #' 
 #' @export
-findPure <- function(A, ext.prop = NULL, pure.prop = 0.5) {
+findPure <- function(expr, type="log", ext.prop = NULL, pure.prop = 0.5) {
+  ## cell-cell similarity matrix
+  A = getSimilarity(expr, type=type)
   n = nrow(A)
   
   ## proportion of extreme neighbors
@@ -134,9 +134,13 @@ findPure <- function(A, ext.prop = NULL, pure.prop = 0.5) {
       ext.prop = 0.03
     }
   }
+  
   ## for stable results, require at least 5 cells in the extreme neighbors
   n.ext = round(n * ext.prop)
-  n.ext = max(n.ext, 5)
+  if (n.ext < 5) {
+    warning("ext.prop is too small: at least 5 extreme neighbors are required. Use ext.prop=5/n.cells instead.\n")
+    n.ext = 5
+  }
   
   ## for each row i, compute its extreme value m_i
   ext.values = rep(0, n)
@@ -164,7 +168,12 @@ findPure <- function(A, ext.prop = NULL, pure.prop = 0.5) {
   }
   
   ## pure cells
-  n.pure = round(pure.prop*nrow(A))
+  ## for stable results, require at least 10 pure cells
+  n.pure = round(pure.prop * n)
+  if (n.pure < 10) {
+    warning("pure.prop is too small: at least 10 pure cells are required. Use pure.prop=10/n.cells instead.\n")
+    n.pure = 10
+  }
   i.pure = order(purity, decreasing = TRUE)[1:n.pure]
   
   return(list(i.pure=i.pure, purity=purity))
@@ -235,20 +244,28 @@ getTheta <- function(expr, i.pure, pure.cluster, G) {
                             type=2)$X
   }
   theta = G %*% Q
+  row.names(theta) = row.names(expr)
 
   ## get cluster centers
   centers = getCenters(expr, theta)
   
   ## post-process for a proper membership matrix
+  membership = projMembership(theta)
+
+  return(list(membership=membership, 
+              centers=centers))
+  
+}
+
+
+projMembership <- function(theta) {
   membership = theta
   membership[membership < 0] = 0
   membership = scaleRowSums(membership)
   membership[is.na(membership)] = 0
-  row.names(membership) = row.names(expr)
+  row.names(membership) = row.names(theta)
   
-  return(list(membership=membership, 
-              centers=centers))
-  
+  return(membership)
 }
 
 #' Scale matrix by row sums
@@ -268,11 +285,12 @@ scaleRowSums <- function(x) {
 #' Compute the cell-cell similarity matrix.
 #' 
 #' @param expr a cell-by-gene expression matrix, either the raw counts or log-transformed expressions. 
-#' @param type "count" (default) if \code{expr} contains the raw counts, or "log" if \code{expr} has been normalized and log-transformed.
+#' @param type "log" if \code{expr} has been normalized and log-transformed (default), 
+#'            or "count" if \code{expr} contains the raw counts.
 #' @param method the method to measure similarity between cells, one of \{"cov", "cor", "inner\},
 #'
 #' @return The cell-cell similarity matrix.
-getSimilarity <- function(expr, type="count") {
+getSimilarity <- function(expr, type="log") {
   
   ## for raw counts, normalize and log-transform
   if (type == "count") {
@@ -283,23 +301,9 @@ getSimilarity <- function(expr, type="count") {
     expr = scale(expr, center=TRUE, scale=FALSE)
     A = expr %*% t(expr)
   } else {
-    stop("data type must be 'count' or 'log'.\n")
+    stop("data type must be either 'log' or 'count'.\n")
   }
-  
-  # 
-  # ## similarity matrix: covariance, correlation, or inner product?
-  # ## For now, inner product works the best.
-  # if (method == "cov") {
-  #   A = cov(t(expr))
-  # } else if (method == "cor") {
-  #   A = cor(t(expr))
-  # } else if (method == "inner") {
-  #   ## center by genes is helpful
-  #   expr = scale(expr, center=TRUE, scale=FALSE)
-  #   A = expr %*% t(expr)
-  # } else {
-  #   stop("Similarity method must be 'cov', 'cor', or 'inner'.")
-  # }
+
   return (A) 
 }
 

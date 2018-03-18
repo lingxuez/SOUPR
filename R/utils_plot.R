@@ -4,26 +4,24 @@
 #' @param memberships A list of membership matrices of different K
 #' @param Ks A list of different Ks 
 #' @param cell.type The golden standard cell types for reference.
+#' @param ref.lab Name to be shown for the reference cell types; default is "Reference"
 #' 
 #' @return A ggplot object.
 #' 
 #' @export
 heatmapKseq <- function(memberships, Ks, cell.type, ref.lab="Reference") {
   
-  assign.out = getMajorMatrix(memberships, Ks, cell.type,
-                              type="hard", ref.lab=ref.lab)
-  ## order
-  i.order = order(cell.type, assign.out$timeline)
-  dat3 <- assign.out$assign.Kseq[i.order, ]
+  assign.Kseq = getMajorMatrix(memberships, Ks, cell.type,
+                              ref.lab=ref.lab)
+  
+  ## order cells by reference type and the last SOUP assignments
+  i.order = order(cell.type, assign.Kseq[, paste0("K=", max(Ks))])
+  dat3 <- assign.Kseq[i.order, ]
 
   ## Heatmap
   dat3$Cell = factor(c(1:nrow(dat3)))
   dat3 <- melt(dat3, id.var="Cell")
   dat3$value <- as.factor(dat3$value)
-  
-  K = length(table(dat3$value))
-  
-  
   g <- ggplot2::ggplot(dat3, aes(Cell, variable)) +
     geom_tile(aes(fill = value)) +
     labs(y="", x="Single Cells", fill="cluster") +
@@ -37,7 +35,9 @@ heatmapKseq <- function(memberships, Ks, cell.type, ref.lab="Reference") {
           legend.direction="vertical",
           legend.title = element_text(size=15)
     )
-
+  
+  ## color scheme
+  K = length(table(dat3$value))
   if (K <= 10) {
     mycols = RColorBrewer::brewer.pal(K+1, "Spectral")[-c((K+1)/2+1)]
     g <- g + scale_fill_manual(values=mycols)
@@ -51,8 +51,7 @@ heatmapKseq <- function(memberships, Ks, cell.type, ref.lab="Reference") {
 #' 
 #' @export
 #' 
-getMajorMatrix <- function(memberships, Ks, cell.type,
-                            type="hard", ref.lab="Reference") {
+getMajorMatrix <- function(memberships, Ks, cell.type, ref.lab="Reference") {
   if (length(memberships) != length(Ks)) {
     stop("memberships and Ks must be two lists with same lengths.\n")
   }
@@ -65,75 +64,30 @@ getMajorMatrix <- function(memberships, Ks, cell.type,
   for (i in c(1:n.K)) {
     K <- Ks[i]
     soup.label <- apply(memberships[[i]], 1, nnet::which.is.max)
-    i.na <- which(rowSums(memberships[[i]]) == 0)
     ## re-order the labels to match
     i.permute = getPermute(soup.label, cell.type)
-    if (type == "hard") {
-      assign.Kseq[, i] <- apply(memberships[[i]][, i.permute, drop=FALSE], 
+    assign.Kseq[, i] <- apply(memberships[[i]][, i.permute, drop=FALSE], 
                                 1, nnet::which.is.max)
-      assign.Kseq[i.na, i] <- NA
-    } else {
-      assign.Kseq[, i] <- apply(memberships[[i]][, i.permute, drop=FALSE], 
-                                1, max)
-    }
-   
   }
-  ## timeline
-  last_membership = memberships[[n.K]][, i.permute]
-  timeline = rowSums(last_membership  %*% diag(c(1:ncol(last_membership))))
-  
+
   ## reference type
   assign.Kseq = data.frame(assign.Kseq)
   assign.Kseq$Reference = as.numeric(as.factor(cell.type))
   colnames(assign.Kseq) <- c(paste0("K=", Ks), ref.lab)
   
-  return(list(assign.Kseq=assign.Kseq,
-              timeline=timeline,
-              last_membership=last_membership,
-              i.permute=i.permute))
+  return(assign.Kseq)
 }
 
 
-#' Visualize SOUP major proportions
+#' Permute labels
 #' 
-#' @param memberships A list of membership matrices of different K
-#' @param Ks A list of different Ks 
-#' @param cell.type The golden standard cell types for reference.
+#' Permute the estimated labels to be consistent with the reference labels.
 #' 
-#' @return A ggplot object.
+#' @param est.label a vector of estimated clusters, containing {1, ..., K}
+#' @param true.label a vector of reference/true labels
 #' 
-#' @export
-heatmapKseqProp <- function(memberships, Ks, cell.type) {
-  assign.out = getMajorMatrix(memberships, Ks, cell.type,
-                              type="soft")
-  ## order
-  i.order = order(cell.type, assign.out$timeline)
-  dat3 <- assign.out$assign.Kseq[i.order, c(1:length(Ks))]
-  
-  ## Heatmap
-  dat3$Cell = factor(c(1:nrow(dat3)))
-  dat3 <- melt(dat3, id.var="Cell")
-  
-  mycol = RColorBrewer::brewer.pal(7, "Spectral")[7]
-  g <- ggplot2::ggplot(dat3, aes(Cell, variable)) +
-    geom_tile(aes(fill = value)) +
-    scale_fill_gradient(low="white", high=mycol) +
-    labs(y="", x="Single Cells", fill="Major\nproportion") +
-    theme(axis.line=element_blank(),
-          axis.text.x=element_blank(),
-          axis.text.y=element_text(size=15),
-          axis.ticks=element_blank(),
-          axis.title.x=element_text(size=15),
-          axis.title.y=element_blank(),
-          legend.position="right", 
-          legend.direction="vertical",
-          legend.title = element_text(size=15)
-    )
-  
-  return(g)
-}
-
-
+#' @return A vector of length K, i.permute, 
+#' such that the i-th reference cluster maps to i.permute[i] in estimated clusters. 
 getPermute = function(est.label, true.label) {
   cont.table = table(est.label, true.label)
   K = nrow(cont.table)
@@ -157,13 +111,14 @@ getPermute = function(est.label, true.label) {
     mapped.labels[mapped.labels==0] <- clust.remaining
   }
   
-  return(as.numeric(row.names(cont.table)[order(mapped.labels)]))
+  i.permute = as.numeric(row.names(cont.table)[order(mapped.labels)])
+  return(i.permute)
 }
 
 #' Visualize contingency table
 #' 
-#' @param true_label The true cell types, a vector of characters or factors
 #' @param est_label Estimated cluster assignments, a vector of characters or factors
+#' @param true_label The true cell types, a vector of characters or factors
 #' @param short.names (optional) If the true cell type names are too long, 
 #'         you can supply abbreviated names to save space in visualizations
 #' @param xlab (optional) The x-axis label; default is "Reference"
@@ -171,7 +126,7 @@ getPermute = function(est.label, true.label) {
 #' @return A ggplot object.
 #' 
 #' @export
-plotContTable <- function(true_label, est_label, short.names=NULL, xlab="Reference") {
+plotContTable <- function(est_label, true_label, short.names=NULL, xlab="Reference") {
   if ("factor" %in% class(true_label)) {
     true_label = droplevels(true_label)
   }

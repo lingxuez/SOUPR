@@ -4,12 +4,13 @@
 \alias{getSimilarity}
 \title{Compute similarity matrix}
 \usage{
-getSimilarity(expr, type = "count")
+getSimilarity(expr, type = "log")
 }
 \arguments{
 \item{expr}{a cell-by-gene expression matrix, either the raw counts or log-transformed expressions.}
 
-\item{type}{"count" (default) if \code{expr} contains the raw counts, or "log" if \code{expr} has been normalized and log-transformed.}
+\item{type}{"log" if \code{expr} has been normalized and log-transformed (default), 
+or "count" if \code{expr} contains the raw counts.}
 
 \item{method}{the method to measure similarity between cells, one of \{"cov", "cor", "inner\},}
 }
