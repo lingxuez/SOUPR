@@ -7,7 +7,8 @@
 DESCENDselect(counts, n.cores = 1, threshold = 3)
 }
 \arguments{
-\item{counts}{the cell-by-gene expression counts. Note that the data should \emph{not} be normalized or log-transformed.}
+\item{counts}{the cell-by-gene expression counts. 
+Note that DESCEND uses a Poisson model, so the count data should be provided (without normalization or log transformation).}
 
 \item{n.cores}{the number of cores used for parallel computing. DESCEND can be slow so parallelization is highly recommended.}
 
@@ -15,7 +16,7 @@ DESCENDselect(counts, n.cores = 1, threshold = 3)
 }
 \value{
 A list containing \describe{
-  \item{i.select}{the indices of selected genes.}
+  \item{select.genes}{the names of selected genes, ordered by decreasing scores.}
   \item{scores}{a score matrix containing the Gini scores of all genes.}
 }
 }

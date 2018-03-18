@@ -4,7 +4,7 @@
 \alias{getSimilarity}
 \title{Compute similarity matrix}
 \usage{
-getSimilarity(expr, type = "count", method = "inner")
+getSimilarity(expr, type = "count")
 }
 \arguments{
 \item{expr}{a cell-by-gene expression matrix, either the raw counts or log-transformed expressions.}

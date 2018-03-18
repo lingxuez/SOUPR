@@ -8,7 +8,7 @@
 \describe{
   \item{cell.info}{a dataframe with 3,005 rows and two columns, cell.id and cell.type.}
   \item{counts}{a matrix of RNA-seq counts, with 3,005 rows and 16,450 columns.}
-  \item{select.genes}{names of the 2819 genes being selected by DESCEND and SPCA.}
+  \item{select.genes}{names of the 2818 genes being selected by DESCEND and SPCA.}
 }}
 \source{
 Zeisel \emph{et al.} (2015) 
@@ -22,7 +22,7 @@ zeisel
 An RNA-seq dataset published in
 Zeisel \emph{et al.} (2015),
 containing 3,005 mouse brain single cells. 
-Cells are labeled into 7 major cell types, 
+Cells are grouped into 7 major cell types, 
 and we retain the 16,450 genes that are expressed in at least 10 cells.
 }
 \examples{

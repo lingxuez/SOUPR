@@ -21,5 +21,6 @@ Imports: RSpectra,
     nnet,
     RColorBrewer,
     ggplot2,
-    PMA
+    PMA,
+    gplots
 RoxygenNote: 6.0.1

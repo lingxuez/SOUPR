@@ -3,7 +3,8 @@
 #' Select highly variable genes for SOUP clustering, using SPCA and/or DESCEND.
 #' 
 #' @param expr a cell-by-gene expression matrix, either the raw counts or log-transformed expressions. 
-#' @param type "count" (default) if \code{expr} contains the raw counts, or "log" if \code{expr} has been normalized and log-transformed.
+#' @param type "count" if \code{expr} contains the raw counts (default), 
+#'      or "log" if \code{expr} has been normalized and log-transformed (default).
 #' @param SPCA boolean, whether to use SPCA or not.
 #' @param DESCEND boolean, whether to use DESCEND or not.
 #' @param n.cores the number of cores used for parallel computing of DESCEND. 
@@ -84,7 +85,8 @@ selectGenes <- function(expr, type="count",
 #' 
 #' Select highly variable genes for clustering using DESCEND.
 #' 
-#' @param counts the cell-by-gene expression counts. Note that the data should \emph{not} be normalized or log-transformed.
+#' @param counts the cell-by-gene expression counts. 
+#'    Note that DESCEND uses a Poisson model, so the count data should be provided (without normalization or log transformation).
 #' @param n.cores the number of cores used for parallel computing. DESCEND can be slow so parallelization is highly recommended.
 #' @param threshold the threshold for Gini index. Higer threshold leads to fewer selected genes.
 #' 
@@ -112,7 +114,9 @@ DESCENDselect <- function(counts, n.cores=1, threshold=3) {
 #' Select highly variable genes for clustering using Sparse Principal Component Analysis (SPCA).
 #' 
 #' @param expr a cell-by-gene expression matrix, either the raw counts or log-transformed expressions. 
-#' @param type "count" (default) if \code{expr} contains the raw counts, or "log" if \code{expr} has been normalized and log-transformed.
+#' @param type "log" if \code{expr} has been normalized and log-transformed (default), 
+#'      or "count" if \code{expr} contains the raw counts. 
+#'      SPCA works best on sub-Gaussian data, so log-transformation is highly recommended.
 #' @param sumabs a measurement of sparsity for SPCA, between \code{1/sqrt(n.gene)} and 1.
 #'  Smaller values result in sparser results, hence fewer selected genes. 
 #' @param nPC the number of sparse singular vectors to look into.

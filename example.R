@@ -7,7 +7,7 @@ library(ggplot2)
 devtools::load_all()
 
 ############################
-## Example on Zeisel data
+## Example of Zeisel mouse brain data
 ############################
 
 ## load data: 3,005 mouse brain single cells
@@ -59,7 +59,7 @@ g <- g + theme(axis.text.x=element_text(size=12, angle=90))
 g
 
 ############################
-## Example on Camp data
+## Example of Camp fetal brain data
 ############################
 
 ## load data: 220 fetal brain single cells

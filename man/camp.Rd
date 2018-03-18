@@ -7,8 +7,8 @@
 \format{A list with three items:
 \describe{
   \item{cell.info}{a dataframe with 220 rows and two columns, cell.id and cell.type.}
-  \item{counts}{a matrix of RNA-seq counts, with 220 rows and 12,858 columns.}
-  \item{select.genes}{names of the 425 genes being selected by DESCEND and SPCA.}
+  \item{counts}{a matrix of RNA-seq counts, with 220 rows and 12,694 columns.}
+  \item{select.genes}{names of the 430 genes being selected by DESCEND and SPCA.}
 }}
 \source{
 Camp \emph{et al.} (2015) 
@@ -22,8 +22,8 @@ camp
 An RNA-seq dataset published in
 Camp \emph{et al.} (2015),
 containing 220 fetal brain single cells. 
-Cells are labeled into 7 cell types, 
-and we retain the 12,858 genes that are expressed in at least 2 cells.
+Cells are grouped into 7 cell types, 
+and we retain the 12,694 genes that are expressed in at least 2 cells.
 }
 \examples{
 cell.info = camp$cell.info

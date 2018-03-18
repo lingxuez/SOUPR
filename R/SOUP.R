@@ -5,7 +5,9 @@
 #' 
 #' @param expr a cell-by-gene expression matrix, either the raw counts or log-transformed expressions. 
 #' @param Ks number of clusters, can be a single integer or a list of integers.
-#' @param type "count" (default) if \code{expr} contains the raw counts, or "log" if \code{expr} has been normalized and log-transformed.
+#' @param type "log" if \code{expr} has been normalized and log-transformed (default),
+#'     or "count" (default) \code{expr} contains the raw counts.
+#'     It is recommended to use the log scale, which usually gives better results in practice.
 #' @param i.pure (optional) the indices of the pure cells. By default is \code{NULL}, and SOUP will infer the pure list.
 #' If the list is already known (for example, from previous runs), then providing it will reduce the computation time.
 #' @param ext.prop (optional) the proportion of extreme neighbors for each cell, such that \code{ext.prop*n.cells} is roughly the number of pure cells \emph{per cluster}. 
@@ -30,7 +32,7 @@
 #' @export  
 
 SOUP <- function(expr, Ks=3, 
-                 type="count", 
+                 type="log", 
                  i.pure=NULL, ext.prop=NULL, pure.prop=0.5,
                  nPC=NULL, nstart=50, verbose=FALSE) {
   if (! type %in% c("count", "log")) {
