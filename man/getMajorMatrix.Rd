@@ -4,8 +4,7 @@
 \alias{getMajorMatrix}
 \title{Get the SOUP majority matrix}
 \usage{
-getMajorMatrix(memberships, Ks, cell.type, type = "hard",
-  ref.lab = "Reference")
+getMajorMatrix(memberships, Ks, cell.type, ref.lab = "Reference")
 }
 \description{
 Get the SOUP majority matrix

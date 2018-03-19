@@ -167,3 +167,65 @@ plotContTable <- function(est_label, true_label, short.names=NULL, xlab="Referen
   
   return(g)
 }
+
+#' Plot Gene Expression along Trajectory
+#' 
+#' @param expr The cell-by-gene expression matrix to be visualized
+#' @param marker.gene The gene to be visualized; must be one of the columns of \code{expr}
+#' @param timeline Timepoints for all cells, a vector
+#' @param x.title (optional) Label of x-axis
+#' @param y.title (optional) Label of y-axis
+#' @param title (optional) Plot title
+#' 
+#' @return A ggplot object
+#' @export
+plotGeneTimeline <- function(expr, marker.gene, timeline, 
+                             x.title="SOUP trajectory", y.title="Expression", title="") {
+  df = data.frame(Expression=expr[, marker.gene],
+                  Trajectory=timeline)
+  g = ggplot(df, aes(x=Trajectory, y=Expression)) +
+    geom_point(aes(color=Trajectory)) +
+    labs(x=x.title, y=y.title, title=title) +
+    scale_colour_gradient(low="#56B1F7", high="#132B43") +
+    theme_bw() +
+    theme(panel.background = element_blank(),
+          panel.border = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.grid.major = element_blank(),
+          axis.line = element_line(colour = "black"),
+          axis.title.x=element_text(size=12),
+          axis.title.y=element_text(size=12),
+          legend.title=element_text(size=12),
+          legend.text=element_text(size=12),
+          plot.title = element_text(size=12, face="bold", hjust = 0.5))
+  return(g)
+}
+
+#' Plot Multiple Gene Expressions along Trajectory
+#' 
+#' Expression levels of multiple genes along trajectory, arranged on a grid of plots.
+#' 
+#' @param expr The cell-by-gene expression matrix to be visualized
+#' @param genelist A list of genes to be visualized; must be among the columns of \code{expr}
+#' @param timeline Timepoints for all cells, a vector
+#' @param x.title (optional) Label of x-axis
+#' @param y.title (optional) Label of y-axis
+#' @param nrow (optional) number of rows in the plot grid.
+#' @param ncol (optional) number of cols in the plot grid.
+#' 
+#' @return A ggplot object
+#' @export
+plotMultipleGeneTimeline <- function(expr, genelist, timeline,
+                                     x.title="SOUP trajectory", y.title="Expression", 
+                                     nrow=NULL, ncol=NULL) {
+  g.list = list()
+  for (gene in genelist) {
+    g.list = c(g.list, 
+               list(plotGeneTimeline(expr=expr, marker.gene=gene, timeline=timeline, 
+                                x.title=x.title, y.title=y.title, title=gene)))
+  }
+  
+  g.multi = ggarrange(plotlist=g.list, nrow=nrow, ncol=ncol,
+                      common.legend=TRUE, legend="right")
+  return(g.multi)
+}

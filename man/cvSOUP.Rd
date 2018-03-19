@@ -4,7 +4,24 @@
 \alias{cvSOUP}
 \title{Cross Validation for SOUP}
 \usage{
-cvSOUP(expr, type = "count", nfold = 10, nCV = 10, Ks = c(2:10))
+cvSOUP(expr, type = "log", nfold = 10, nCV = 10, Ks = c(2:10),
+  mc.cores = 10, verbose = TRUE)
+}
+\arguments{
+\item{expr}{A cell-by-gene expression matrix, either the raw counts or log-transformed expressions.}
+
+\item{type}{"log" if \code{expr} has been normalized and log-transformed (default),
+or "count" (default) \code{expr} contains the raw counts.}
+
+\item{nfold}{Number of folds}
+
+\item{nCV}{Number of repetitions}
+
+\item{Ks}{A sequence of cluster numbers}
+
+\item{mc.cores}{Number of cores for parallelization}
+
+\item{verbose}{Whether to print progress}
 }
 \description{
 Cross Validation for SOUP

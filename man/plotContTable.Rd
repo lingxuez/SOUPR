@@ -4,12 +4,12 @@
 \alias{plotContTable}
 \title{Visualize contingency table}
 \usage{
-plotContTable(true_label, est_label, short.names = NULL, xlab = "Reference")
+plotContTable(est_label, true_label, short.names = NULL, xlab = "Reference")
 }
 \arguments{
-\item{true_label}{The true cell types, a vector of characters or factors}
-
 \item{est_label}{Estimated cluster assignments, a vector of characters or factors}
+
+\item{true_label}{The true cell types, a vector of characters or factors}
 
 \item{short.names}{(optional) If the true cell type names are too long, 
 you can supply abbreviated names to save space in visualizations}

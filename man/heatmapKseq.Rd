@@ -12,6 +12,8 @@ heatmapKseq(memberships, Ks, cell.type, ref.lab = "Reference")
 \item{Ks}{A list of different Ks}
 
 \item{cell.type}{The golden standard cell types for reference.}
+
+\item{ref.lab}{Name to be shown for the reference cell types; default is "Reference"}
 }
 \value{
 A ggplot object.

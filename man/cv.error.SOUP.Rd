@@ -2,10 +2,25 @@
 % Please edit documentation in R/cvSOUP.R
 \name{cv.error.SOUP}
 \alias{cv.error.SOUP}
-\title{Cross Validation Errors}
+\title{Compute Cross Validation Errors}
 \usage{
-cv.error.SOUP(expr, type = "count", nfold = 10, Ks = c(2:10))
+cv.error.SOUP(expr, type = "log", nfold = 10, Ks = c(2:10), seed = NULL,
+  mc.cores = 2)
+}
+\arguments{
+\item{expr}{A cell-by-gene expression matrix, either the raw counts or log-transformed expressions.}
+
+\item{type}{"log" if \code{expr} has been normalized and log-transformed (default),
+or "count" (default) \code{expr} contains the raw counts.}
+
+\item{nfold}{Number of folds}
+
+\item{Ks}{A sequence of cluster numbers}
+
+\item{seed}{(optional) random seed}
+
+\item{mc.cores}{Number of cores for parallelization}
 }
 \description{
-Cross Validation Errors
+Compute Cross Validation Errors
 }

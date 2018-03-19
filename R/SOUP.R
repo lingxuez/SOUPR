@@ -307,3 +307,5 @@ getSimilarity <- function(expr, type="log") {
   return (A) 
 }
 
+
+
