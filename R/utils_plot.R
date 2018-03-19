@@ -9,7 +9,8 @@
 #' @return A ggplot object.
 #' 
 #' @export
-heatmapKseq <- function(memberships, Ks, cell.type, ref.lab="Reference") {
+heatmapKseq <- function(memberships, Ks, cell.type, ref.lab="Reference",
+                        font.size=10) {
   
   assign.Kseq = getMajorMatrix(memberships, Ks, cell.type,
                               ref.lab=ref.lab)
@@ -27,13 +28,13 @@ heatmapKseq <- function(memberships, Ks, cell.type, ref.lab="Reference") {
     labs(y="", x="Single Cells", fill="cluster") +
     theme(axis.line=element_blank(),
           axis.text.x=element_blank(),
-          axis.text.y=element_text(size=15),
+          axis.text.y=element_text(size=font.size),
           axis.ticks=element_blank(),
-          axis.title.x=element_text(size=15),
+          axis.title.x=element_text(size=font.size),
           axis.title.y=element_blank(),
           legend.position="right", 
           legend.direction="vertical",
-          legend.title = element_text(size=15)
+          legend.title = element_text(size=font.size)
     )
   
   ## color scheme
