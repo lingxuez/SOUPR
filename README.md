@@ -28,5 +28,5 @@ devtools::install_github("lingxuez/SOUP")
 ```
 
 ## Examples
-Please follow `example.R` for two examples of using this R package, 
-where we re-produce the results in two single cell datasets as in our paper.
+Please follow the vignette for an example of using this R package on a fetal brain dataset, 
+where we re-produce the results in our paper.
