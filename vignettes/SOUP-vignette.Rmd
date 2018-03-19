@@ -2,7 +2,7 @@
 title: "A quick tour of SOUP"
 author: "Lingxue Zhu"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: pdf_document
 vignette: >
   %\VignetteIndexEntry{A quick tour of SOUP}
   %\VignetteEngine{knitr::rmarkdown}
@@ -152,7 +152,7 @@ system.time({
 ```
 
 The optimal $K$ is the one that achieves the lowest cross validation error, given by `cv.soup.out$K.cv`. We visualize the cross validation error, in the log scale, over different $K$'s, and the optimal $K$ is 4. For better visualization, values are capped at 2.5:
-```{r, cache=TRUE, fig.width=5, fig.height=3.5}
+```{r, cache=TRUE, fig.width=4, fig.height=3.5}
 trunc.log.cvm = pmin(log(cv.soup.out$cvm), 2.5)
 plot(Ks, trunc.log.cvm, type="b", pch=19,
      xlab="K", ylab="CV error")
