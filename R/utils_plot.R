@@ -180,7 +180,8 @@ plotContTable <- function(est_label, true_label, short.names=NULL, xlab="Referen
 #' @return A ggplot object
 #' @export
 plotGeneTimeline <- function(expr, marker.gene, timeline, 
-                             x.title="SOUP trajectory", y.title="Expression", title="") {
+                             x.title="SOUP trajectory", y.title="Expression", title="",
+                             font.size=10) {
   df = data.frame(Expression=expr[, marker.gene],
                   Trajectory=timeline)
   g = ggplot2::ggplot(df, aes(x=Trajectory, y=Expression)) +
@@ -193,11 +194,11 @@ plotGeneTimeline <- function(expr, marker.gene, timeline,
           panel.grid.minor = element_blank(),
           panel.grid.major = element_blank(),
           axis.line = element_line(colour = "black"),
-          axis.title.x=element_text(size=12),
-          axis.title.y=element_text(size=12),
-          legend.title=element_text(size=12),
-          legend.text=element_text(size=12),
-          plot.title = element_text(size=12, face="bold", hjust = 0.5))
+          axis.title.x=element_text(size=font.size),
+          axis.title.y=element_text(size=font.size),
+          legend.title=element_text(size=font.size),
+          legend.text=element_text(size=font.size),
+          plot.title = element_text(size=font.size, face="bold", hjust = 0.5))
   return(g)
 }
 

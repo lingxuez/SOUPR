@@ -18,97 +18,130 @@ knitr::opts_chunk$set(
 
 This vignette walks through two data examples and illustrates the basic usage of `SOUP`.
 
+## Installation
+`SOUP` can be installed directly from GitHub with `devtools`: 
+```{r, cache=TRUE}
+#library(devtools)
+#devtools::install_github("lingxuez/SOUP")
+```
+
+Now we can load `SOUP`. We also load the `ggplot2` package for visualization purpose.
 ```{r}
-library(devtools)
-devtools::install_github("lingxuez/SOUP")
 library(SOUP)
+library(ggplot2)
 ```
 
 ## Fetal Brain Data
-
-### Gene selection
-
+First, we illustrate the usage of SOUP on a fetal brain single-cell dataset (*Camp et al. (2015)*). The Camp data is distributed together with the SOUP package, with 220 cells and 12,694 genes, which can be loaded by
 ```{r}
+## cell information, including reference cell types
 cell.info = camp$cell.info
-log.expr = log2(scaleRowSums(camp$counts)*(10^6) + 1)
-log.expr = log.expr[, colnames(log.expr) %in% camp$select.genes]
+## cell-by-gene count matrix
+counts = camp$counts
+dim(counts)
+```
+
+To see more details of Camp data:
+```{r, results="hide"}
+help(camp)
+```
+
+### 1. Data pre-processing
+In practice, we find it always beneficial to pre-process single-cell RNA-seq dataset, including:
+
+1. Normalize such that each cell has total sum of $1e6$, which is equivalent to a TPM normalization.
+2. Log transformation.
+
+The following line performs these steps:
+```{r}
+log.expr = log2(scaleRowSums(counts)*(10^6) + 1)
+```
+
+### 2. Gene selection
+```{r, cache=TRUE}
+log.select.expr = log.expr[, colnames(log.expr) %in% camp$select.genes]
 dim(log.expr)
 ```
 
-### SOUP clustering
-```{r}
-soup.out = SOUP(log.expr, Ks=c(2:5), type="log", nstart=50)
+### 3. SOUP clustering
+SOUP clustering is then applied to the set of selected genes.  It is highly recommended to use the log-scaled data. We can run `SOUP` over a sequence of $K$'s, the number of clusters. The output includes a sequence of membership matrices, one per given $K$, as well as a sequence of cluster centers, one per given $K$.
+```{r, cache=TRUE}
+soup.out = SOUP(log.select.expr, Ks=c(2:5), type="log")
+## Output includes a sequence of membership matrices
+length(soup.out$memberships)
+dim(soup.out$memberships[[1]])
+## Output includes a sequence of cluster centers
+length(soup.out$centers)
+dim(soup.out$centers[[1]])
 ```
 
+**Hard clustering.**
+SOUP can be treated as hard clustering,  by assigning each cell to its major type with the largest membership. The hard assignments are stored in `soup.out$major.labels`:
 ```{r}
-heatmapKseq(soup.out$memberships, soup.out$Ks, cell.info$cell.type)
+## one vector per given K
+length(soup.out$major.labels)
+## the results of K=5
+table(soup.out$major.labels[[4]])
 ```
 
-```{r}
+The function `heatmapKseq` provides a visualization of the hard clustering results of different $K$'s, compared to the reference cell type.
+```{r, cache=TRUE, fig.width=7, fig.height=2.5}
+g.kseq = heatmapKseq(memberships=soup.out$memberships, 
+                     Ks=soup.out$Ks, 
+                     cell.type=cell.info$cell.type)
+g.kseq
+```
+
+**Soft membership and trajectory.**
+On the other hand, using SOUP soft memberships, one can obtain an ordering of cells corresponding to their developmental trajectory. In particular, we estimate a timepoint for each cell by
+
+1. Order the clusters so that they represent developmental order. In this dataset, we first identify the ending point by using the cluster with the largest group of `N3` cells, which is the group of most matured neurons. Then we consecutively find the next previous cluster that has the highest cluster center correlation.
+
+2. The timepoint of cell i is estimated by $t_i = \sum_k k \hat{\theta}_{ik}$, where $\hat{\theta}_{i \cdot}$ is the estimated SOUP membership.
+
+The function `getTimeline` implements these steps, and returns the vector $(t_1, ..., t_n)$. Here, we present the results with $K=5$:
+```{r, cache=TRUE}
+## use K=5
 K.use = 5
 i.K = match(K.use, soup.out$Ks)
-
 ## pick the ending point: with the most N3 cells
 soup.label = soup.out$major.labels[[i.K]]
 k.end = which.max(table(soup.label, cell.info$cell.type)[, "N3"])
+## estimate timepoints
 soup.timeline = getTimeline(membership = soup.out$memberships[[i.K]],
                             centers = soup.out$centers[[i.K]],
                             k.end=k.end)
+```
+
+To examine the estimated trajectory, we visualize the expression levels of 5 marker genes along the estimated SOUP trajectory, using function `plotMultipleGeneTimeline`:
+```{r, cache=TRUE, fig.width=7, fig.height=3.5}
 ## visualize timeline
 genelist = c("CCNB1", "PAX6", "SOX2", "NEUROD6", "MEF2C")
-plotMultipleGeneTimeline(expr=log.expr, 
-                         genelist=genelist,
-                         timeline=soup.timeline, 
-                         nrow=2, ncol=3)
+g.timeline = plotMultipleGeneTimeline(expr=log.expr, 
+                                      genelist=genelist,
+                                      timeline=soup.timeline, 
+                                      nrow=2, ncol=3)
+g.timeline
 ```
 
-### Cross Validation
 
-
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
-
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
-
-## Vignette Info
-
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+### 4. Cross Validation
+Finally, we present a cross validation procedure to select the optimal $K$, number of clusters. In particular, we search over $K\in\{2, .., 10}$ using 10-fold cross validation, and the errors are averaged over `nCV` repetitions. For illustration purpose, here we conduct only 2 repetitions. A parallelization option has been implemented, and the number of cores to be used can be specified via `mc.cores`. Note that the computation is parallelized across folds, so there is no need to use more than `nfold` of cores. For reproducibility, we set the seeds below:
+```{r, cache=TRUE}
+Ks=c(2:10)
+system.time({
+  cv.soup.out = cvSOUP(log.expr, Ks=Ks, type="log",
+                       nfold=10, nCV=2, mc.cores = 2,
+                       seeds=c(42, 142))
+})
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
-
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+The optimal $K$ is the one that achieves the lowest cross validation error, given by `cv.soup.out$K.cv`. We visualize the cross validation error, in the log scale, over different $K$'s. For better visualization, values are capped at 2.5:
+```{r}
+trunc.log.cvm = pmin(log(cv.soup.out$cvm), 2.5)
+plot(Ks, trunc.log.cvm)
+abline(v=cv.soup.out$K.cv, lty=4, lwd=2, col="darkblue",
+       xlab="K", ylab="cross validation error")
 ```
 
-Also a quote using `>`:
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))

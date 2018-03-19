@@ -13,6 +13,7 @@
 #' 
 cvSOUP <- function(expr, type="log", 
                    nfold=10, nCV=10, Ks=c(2:10), mc.cores=10,
+                   seeds=NULL,
                    verbose=TRUE) {
   
   cv.errors = matrix(NA, nrow=nCV, ncol=length(Ks))
@@ -22,7 +23,13 @@ cvSOUP <- function(expr, type="log",
     if (verbose) {
       cat("CV", i.cv, "...")
     }
+    if (!is.null(seeds) && length(seeds)==nCV) {
+      seed = seeds[i.cv]
+    } else {
+      seed = NULL
+    }
     cv.out = cv.error.SOUP(expr=expr, type=type, 
+                           seed=seed,
                            nfold=nfold, Ks=Ks)
     cv.errors[i.cv, ] = cv.out$cvm
     cv.sds[i.cv, ] = cv.out$cvsd
@@ -60,6 +67,7 @@ cv.error.SOUP <- function(expr, type="log",
   doCV <- function(fold, nfold, i.permute.ind, 
                    expr, Ks, type) {
     n.sc = nrow(expr)
+    n.gene = ncol(expr)
     n.K = length(Ks)
     fold.size = floor(n.sc / nfold)
     
@@ -80,7 +88,7 @@ cv.error.SOUP <- function(expr, type="log",
       test.theta = predictTheta(new.expr=expr[i.test, ], 
                                 t.centers=t(train.centers))
       test.pred = test.theta %*% train.centers
-      cv.error[i.K] = sum((expr[i.test, ] - test.pred)^2) / n.test
+      cv.error[i.K] = sum((expr[i.test, ] - test.pred)^2) / (n.test*n.gene)
     }
     
     return(cv.error)
