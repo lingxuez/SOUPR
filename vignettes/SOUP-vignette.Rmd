@@ -16,33 +16,33 @@ knitr::opts_chunk$set(
 )
 ```
 
-This vignette walks through two data examples and illustrates the basic usage of `SOUP`.
+This vignette walks through an example of fetal brain data and illustrates the basic usage of `SOUP`.
 
 ## Installation
 `SOUP` can be installed directly from GitHub with `devtools`: 
-```{r, cache=TRUE}
-#library(devtools)
-#devtools::install_github("lingxuez/SOUP")
+```{r, eval=FALSE, results="hide"}
+library(devtools)
+devtools::install_github("lingxuez/SOUP")
 ```
 
 Now we can load `SOUP`. We also load the `ggplot2` package for visualization purpose.
-```{r}
+```{r, results="hide"}
 library(SOUP)
 library(ggplot2)
 ```
 
 ## Fetal Brain Data
-First, we illustrate the usage of SOUP on a fetal brain single-cell dataset (*Camp et al. (2015)*). The Camp data is distributed together with the SOUP package, with 220 cells and 12,694 genes, which can be loaded by
+First, we illustrate the usage of SOUP on a fetal brain single-cell dataset (*Camp et al. (2015)*). The Camp data is distributed together with the SOUP package, with 220 cells and 12,694 genes, which can be directly loaded:
 ```{r}
-## cell information, including reference cell types
 cell.info = camp$cell.info
-## cell-by-gene count matrix
+head(cell.info)
+
 counts = camp$counts
 dim(counts)
 ```
 
 To see more details of Camp data:
-```{r, results="hide"}
+```{r, eval=FALSE, results="hide"}
 help(camp)
 ```
 
@@ -53,34 +53,49 @@ In practice, we find it always beneficial to pre-process single-cell RNA-seq dat
 2. Log transformation.
 
 The following line performs these steps:
-```{r}
-log.expr = log2(scaleRowSums(counts)*(10^6) + 1)
-```
-
-### 2. Gene selection
 ```{r, cache=TRUE}
-log.select.expr = log.expr[, colnames(log.expr) %in% camp$select.genes]
+log.expr = log2(scaleRowSums(counts)*(10^6) + 1)
 dim(log.expr)
 ```
 
-### 3. SOUP clustering
-SOUP clustering is then applied to the set of selected genes.  It is highly recommended to use the log-scaled data. We can run `SOUP` over a sequence of $K$'s, the number of clusters. The output includes a sequence of membership matrices, one per given $K$, as well as a sequence of cluster centers, one per given $K$.
+### 2. Gene selection
+We propose a selection procedure to identify the set of important genes for clustering. This procedure includes two parts:
+
+1. DESCEND algorithm (*Wang et al. (2017)*), which works on the count data directly using a Poisson model;
+2. SPCA algorithm (*Witten et al. (2009)*), which works better on the log-transformed data.
+
+Because these two algorithms work in different spaces, we ask users to provide the raw counts when possible, and the function `selectGenes` will use the correct scale for both algorithms. Note that this procedure can be slow. One can parallelize the DESCEND algorithm by specifying the number of cores in `n.cores`. For the purpose of this tutorial, please feel free to skip this step, and directly use the pre-computed results we provide.
+```{r, eval=FALSE}
+#> NOT RUN
+select.out = selectGenes(counts, type="count", n.cores=10)
+select.genes = select.out$select.genes
+#> NOT RUN
+```
+
+We provide the selection results of 430 genes in `camp$select.genes`, which can be directly loaded:
 ```{r, cache=TRUE}
-soup.out = SOUP(log.select.expr, Ks=c(2:5), type="log")
-## Output includes a sequence of membership matrices
+select.genes = camp$select.genes
+log.select.expr = log.expr[, colnames(log.expr) %in% select.genes]
+dim(log.select.expr)
+```
+
+### 3. SOUP clustering
+SOUP clustering is then applied to the set of selected genes.  It is highly recommended to use the log-scaled data. We can run `SOUP` over a sequence of $K$'s, the number of clusters. Here we present the results over $K\in\{2, ..., 5\}$:
+```{r, cache=TRUE}
+system.time({
+  soup.out = SOUP(log.select.expr, Ks=c(2:5), type="log")
+})
+```
+
+The output of function `SOUP` includes a sequence of membership matrices,as well as a sequence of cluster centers, one per given $K$:
+```{r, cache=TRUE}
 length(soup.out$memberships)
-dim(soup.out$memberships[[1]])
-## Output includes a sequence of cluster centers
 length(soup.out$centers)
-dim(soup.out$centers[[1]])
 ```
 
 **Hard clustering.**
-SOUP can be treated as hard clustering,  by assigning each cell to its major type with the largest membership. The hard assignments are stored in `soup.out$major.labels`:
+SOUP can be treated as hard clustering,  by assigning each cell to its major type with the largest membership. The hard assignments are stored in `soup.out$major.labels`, and we present the results of $K=5$ below as an example:
 ```{r}
-## one vector per given K
-length(soup.out$major.labels)
-## the results of K=5
 table(soup.out$major.labels[[4]])
 ```
 
@@ -101,13 +116,14 @@ On the other hand, using SOUP soft memberships, one can obtain an ordering of ce
 
 The function `getTimeline` implements these steps, and returns the vector $(t_1, ..., t_n)$. Here, we present the results with $K=5$:
 ```{r, cache=TRUE}
-## use K=5
 K.use = 5
 i.K = match(K.use, soup.out$Ks)
-## pick the ending point: with the most N3 cells
+
+#> pick the ending point: with the most N3 cells
 soup.label = soup.out$major.labels[[i.K]]
 k.end = which.max(table(soup.label, cell.info$cell.type)[, "N3"])
-## estimate timepoints
+
+#> estimate timepoints
 soup.timeline = getTimeline(membership = soup.out$memberships[[i.K]],
                             centers = soup.out$centers[[i.K]],
                             k.end=k.end)
@@ -115,9 +131,8 @@ soup.timeline = getTimeline(membership = soup.out$memberships[[i.K]],
 
 To examine the estimated trajectory, we visualize the expression levels of 5 marker genes along the estimated SOUP trajectory, using function `plotMultipleGeneTimeline`:
 ```{r, cache=TRUE, fig.width=7, fig.height=3.5}
-## visualize timeline
 genelist = c("CCNB1", "PAX6", "SOX2", "NEUROD6", "MEF2C")
-g.timeline = plotMultipleGeneTimeline(expr=log.expr, 
+g.timeline = plotMultipleGeneTimeline(expr=log.select.expr, 
                                       genelist=genelist,
                                       timeline=soup.timeline, 
                                       nrow=2, ncol=3)
@@ -126,22 +141,25 @@ g.timeline
 
 
 ### 4. Cross Validation
-Finally, we present a cross validation procedure to select the optimal $K$, number of clusters. In particular, we search over $K\in\{2, .., 10}$ using 10-fold cross validation, and the errors are averaged over `nCV` repetitions. For illustration purpose, here we conduct only 2 repetitions. A parallelization option has been implemented, and the number of cores to be used can be specified via `mc.cores`. Note that the computation is parallelized across folds, so there is no need to use more than `nfold` of cores. For reproducibility, we set the seeds below:
+Finally, we present a cross validation procedure to select the optimal $K$, number of clusters. In particular, we search over $K\in\{2, .., 10\}$ using 10-fold cross validation, and the errors are averaged over `nCV` repetitions. For illustration purpose, here we conduct only 2 repetitions. A parallelization option has been implemented, and the number of cores to be used can be specified via `mc.cores`. Note that the computation is parallelized across folds, so there is no need to use more than `nfold` of cores. For reproducibility, we set the seeds below:
 ```{r, cache=TRUE}
 Ks=c(2:10)
 system.time({
-  cv.soup.out = cvSOUP(log.expr, Ks=Ks, type="log",
+  cv.soup.out = cvSOUP(log.select.expr, Ks=Ks, type="log",
                        nfold=10, nCV=2, mc.cores = 2,
-                       seeds=c(42, 142))
+                       seeds=c(42, 142), verbose=FALSE)
 })
 ```
 
-The optimal $K$ is the one that achieves the lowest cross validation error, given by `cv.soup.out$K.cv`. We visualize the cross validation error, in the log scale, over different $K$'s. For better visualization, values are capped at 2.5:
-```{r}
+The optimal $K$ is the one that achieves the lowest cross validation error, given by `cv.soup.out$K.cv`. We visualize the cross validation error, in the log scale, over different $K$'s, and the optimal $K$ is 4. For better visualization, values are capped at 2.5:
+```{r, cache=TRUE, fig.width=5, fig.height=3.5}
 trunc.log.cvm = pmin(log(cv.soup.out$cvm), 2.5)
-plot(Ks, trunc.log.cvm)
-abline(v=cv.soup.out$K.cv, lty=4, lwd=2, col="darkblue",
-       xlab="K", ylab="cross validation error")
+plot(Ks, trunc.log.cvm, type="b", pch=19,
+     xlab="K", ylab="CV error")
+abline(v=cv.soup.out$K.cv, lty=4, lwd=2, col="darkblue")
 ```
 
-
+### References
+1. Camp *et al.* (2015) Human cerebral organoids recapitulate gene expression programs of fetal neocortex development. *PNAS.*
+2. Wang J *et al.* (2017) Gene expression distribution deconvolution in single cell rna sequencing. *bioRxiv 227033.*
+3. Witten DM, Tibshirani R, Hastie T (2009) A penalized matrix decomposition, with applications to sparse principal components and canonical correlation analysis. *Biostatistics.*
