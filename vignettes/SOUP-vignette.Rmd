@@ -152,10 +152,10 @@ system.time({
 ```
 
 The optimal $K$ is the one that achieves the lowest cross validation error, given by `cv.soup.out$K.cv`. We visualize the cross validation error, in the log scale, over different $K$'s, and the optimal $K$ is 4. For better visualization, values are capped at 2.5:
-```{r, cache=TRUE, fig.width=4, fig.height=3.5, fig.align="center"}
+```{r, cache=TRUE, fig.width=3.5, fig.height=3, fig.align="center"}
 trunc.log.cvm = pmin(log(cv.soup.out$cvm), 2.5)
 plot(Ks, trunc.log.cvm, type="b", pch=19,
-     xlab="K", ylab="CV error", cex.lab=0.8)
+     xlab="K", ylab="CV error", cex.lab=0.7, cex.axis=0.7)
 abline(v=cv.soup.out$K.cv, lty=4, lwd=2, col="darkblue")
 ```
 

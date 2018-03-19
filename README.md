@@ -28,5 +28,5 @@ devtools::install_github("lingxuez/SOUP")
 ```
 
 ## Examples
-Please follow the vignette for an example of using this R package on a fetal brain dataset, 
+Please follow the [vignette](https://github.com/lingxuez/SOUP/blob/master/vignettes/SOUP-vignette.pdf) for an example of using this R package on a fetal brain dataset, 
 where we re-produce the results in our paper.
