@@ -8,11 +8,11 @@ DESCENDselect(counts, n.cores = 1, threshold = 3)
 }
 \arguments{
 \item{counts}{the cell-by-gene expression counts. 
-Note that DESCEND uses a Poisson model, so the count data should be provided (without normalization or log transformation).}
+Note that DESCEND uses a Poisson model, so the count data should be provided.}
 
 \item{n.cores}{the number of cores used for parallel computing. DESCEND can be slow so parallelization is highly recommended.}
 
-\item{threshold}{the threshold for Gini index. Higer threshold leads to fewer selected genes.}
+\item{threshold}{(optional) the threshold for Gini index, default is 3. Higer threshold leads to fewer selected genes.}
 }
 \value{
 A list containing \describe{

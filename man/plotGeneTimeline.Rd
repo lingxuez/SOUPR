@@ -2,10 +2,10 @@
 % Please edit documentation in R/utils_plot.R
 \name{plotGeneTimeline}
 \alias{plotGeneTimeline}
-\title{Plot Gene Expression along Trajectory}
+\title{Plot gene expression along trajectory}
 \usage{
 plotGeneTimeline(expr, marker.gene, timeline, x.title = "SOUP trajectory",
-  y.title = "Expression", title = "")
+  y.title = "Expression", title = "", font.size = 10)
 }
 \arguments{
 \item{expr}{The cell-by-gene expression matrix to be visualized}
@@ -24,5 +24,5 @@ plotGeneTimeline(expr, marker.gene, timeline, x.title = "SOUP trajectory",
 A ggplot object
 }
 \description{
-Plot Gene Expression along Trajectory
+Plot gene expression along trajectory
 }

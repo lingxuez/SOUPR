@@ -1,5 +1,5 @@
 
-#' Estimate Developmental Timeline
+#' Estimate developmental trajectory
 #' 
 #' Estimate the developmental timeline for cells from SOUP soft membership.
 #' 
@@ -37,7 +37,7 @@ getTimeline <- function(membership, centers,
   return(timeline)
 }
 
-#' Order Clusters
+#' Order clusters
 #' 
 #' Re-order cluster labels, starting from \code{k.start}, 
 #' and consecutively append the next one with the highest correlation in cluster centers.

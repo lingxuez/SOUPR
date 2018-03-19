@@ -1,20 +1,20 @@
-#' Cross Validation for SOUP
+#' Cross validation for SOUP
 #' 
 #' @param expr A cell-by-gene expression matrix, either the raw counts or log-transformed expressions. 
 #' @param type "log" if \code{expr} has been normalized and log-transformed (default),
 #'     or "count" (default) \code{expr} contains the raw counts.
-#' @param nfold Number of folds
-#' @param nCV Number of repetitions
 #' @param Ks A sequence of cluster numbers
-#' @param mc.cores Number of cores for parallelization
-#' @param verbose Whether to print progress
+#' @param nfold (optional) Number of folds, default is 10
+#' @param nCV (optional) Number of repetitions, default is 10
+#' @param mc.cores (optional) Number of cores for parallelization, default is 1 without parallelization
+#' @param seeds (optional) A list of seeds to be used, with length nCV, default is NULL
+#' @param verbose (optional) Whether to print progress, default is TRUE
 #' 
 #' @export
 #' 
-cvSOUP <- function(expr, type="log", 
-                   nfold=10, nCV=10, Ks=c(2:10), mc.cores=10,
-                   seeds=NULL,
-                   verbose=TRUE) {
+cvSOUP <- function(expr, type="log", Ks=c(2:10), 
+                   nfold=10, nCV=10, mc.cores=1,
+                   seeds=NULL, verbose=TRUE) {
   
   cv.errors = matrix(NA, nrow=nCV, ncol=length(Ks))
   cv.sds = matrix(NA, nrow=nCV, ncol=length(Ks))
@@ -48,20 +48,19 @@ cvSOUP <- function(expr, type="log",
               K.cv = K.cv))
 }
 
-#' Compute Cross Validation Errors
+#' Compute cross validation errors
 #' 
 #' @param expr A cell-by-gene expression matrix, either the raw counts or log-transformed expressions. 
 #' @param type "log" if \code{expr} has been normalized and log-transformed (default),
 #'     or "count" (default) \code{expr} contains the raw counts.
-#' @param nfold Number of folds
 #' @param Ks A sequence of cluster numbers
-#' @param seed (optional) random seed
-#' @param mc.cores Number of cores for parallelization
+#' @param nfold (optional) Number of folds, default is 10
+#' @param seed (optional) random seed, default is NULL
+#' @param mc.cores (optional) Number of cores for parallelization, default is 1 without parallelization
 #' 
 #' @export
-cv.error.SOUP <- function(expr, type="log", 
-                          nfold=10, Ks=c(2:10), seed=NULL,
-                          mc.cores=2) {
+cv.error.SOUP <- function(expr, type="log", Ks=c(2:10), 
+                          nfold=10, seed=NULL, mc.cores=1) {
   
   ## cross validation
   doCV <- function(fold, nfold, i.permute.ind, 
@@ -116,6 +115,10 @@ cv.error.SOUP <- function(expr, type="log",
 
 #' Predict the membership for new data points
 #' 
+#' @param new.expr cell-by-gene expression matrix
+#' @param t.centers transposed center matrix, n.gene-by-K
+#' 
+#' @return The predicted membership matrix.
 #' @export
 #' 
 predictTheta <- function(new.expr, t.centers) {

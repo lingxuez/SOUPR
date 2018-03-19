@@ -6,7 +6,7 @@
 #' @param expr a cell-by-gene expression matrix, either the raw counts or log-transformed expressions. 
 #' @param Ks number of clusters, can be a single integer or a list of integers.
 #' @param type "log" if \code{expr} has been normalized and log-transformed (default),
-#'     or "count" (default) \code{expr} contains the raw counts.
+#'     or "count" if \code{expr} contains the raw counts.
 #'     It is recommended to use the log scale, which usually gives better results in practice.
 #' @param i.pure (optional) the indices of the pure cells. By default is \code{NULL}, and SOUP will infer the pure list.
 #' If the list is already known (for example, from previous runs), then providing it will reduce the computation time.
@@ -24,13 +24,7 @@
 #'   \item{i.pure}{the indices of pure cells with the highest purity scores.}
 #' }
 #' 
-#' @examples 
-#' select.genes = zeisel$select.genes
-#' counts = zeisel$counts[, colnames(counts) %in% select.genes]
-#' soup.out = SOUP(counts, Ks=7, type="count")
-#' 
 #' @export  
-
 SOUP <- function(expr, Ks=3, 
                  type="log", 
                  i.pure=NULL, ext.prop=NULL, pure.prop=0.5,
@@ -108,7 +102,7 @@ SOUP <- function(expr, Ks=3,
 #' 
 #' @param expr a cell-by-gene expression matrix, either the raw counts or log-transformed expressions. 
 #' @param type "log" if \code{expr} has been normalized and log-transformed (default),
-#'     or "count" (default) \code{expr} contains the raw counts.
+#'     or "count" if \code{expr} contains the raw counts.
 #' @param ext.prop (optional) the proportion of extreme neighbors for each cell, such that \code{ext.prop*n.cells} is roughly the number of pure cells \emph{per cluster}. 
 #' By default, \code{ext.prop=0.1} for less than 1,000 cells, and \code{ext.prop=0.05} for larger datasets.
 #' @param pure.prop (optional) the proportion of pure cells in the data. By default \code{pure.prop=0.5}.
@@ -257,7 +251,11 @@ getTheta <- function(expr, i.pure, pure.cluster, G) {
   
 }
 
-
+#' Clean up membership matrix
+#' 
+#' @param theta The estimated raw theta
+#' 
+#' @return The cleaned-up membership matrix.
 projMembership <- function(theta) {
   membership = theta
   membership[membership < 0] = 0

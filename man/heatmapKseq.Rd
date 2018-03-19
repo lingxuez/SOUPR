@@ -4,7 +4,8 @@
 \alias{heatmapKseq}
 \title{Visualize SOUP hard assignments.}
 \usage{
-heatmapKseq(memberships, Ks, cell.type, ref.lab = "Reference")
+heatmapKseq(memberships, Ks, cell.type, ref.lab = "Reference",
+  font.size = 10)
 }
 \arguments{
 \item{memberships}{A list of membership matrices of different K}

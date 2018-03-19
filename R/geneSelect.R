@@ -4,7 +4,7 @@
 #' 
 #' @param expr a cell-by-gene expression matrix, either the raw counts or log-transformed expressions. 
 #' @param type "count" if \code{expr} contains the raw counts (default), 
-#'      or "log" if \code{expr} has been normalized and log-transformed (default).
+#'      or "log" if \code{expr} has been normalized and log-transformed.
 #' @param SPCA boolean, whether to use SPCA or not.
 #' @param DESCEND boolean, whether to use DESCEND or not.
 #' @param n.cores the number of cores used for parallel computing of DESCEND. 
@@ -86,9 +86,9 @@ selectGenes <- function(expr, type="count",
 #' Select highly variable genes for clustering using DESCEND.
 #' 
 #' @param counts the cell-by-gene expression counts. 
-#'    Note that DESCEND uses a Poisson model, so the count data should be provided (without normalization or log transformation).
+#'    Note that DESCEND uses a Poisson model, so the count data should be provided.
 #' @param n.cores the number of cores used for parallel computing. DESCEND can be slow so parallelization is highly recommended.
-#' @param threshold the threshold for Gini index. Higer threshold leads to fewer selected genes.
+#' @param threshold (optional) the threshold for Gini index, default is 3. Higer threshold leads to fewer selected genes.
 #' 
 #' @return A list containing \describe{
 #'   \item{select.genes}{the names of selected genes, ordered by decreasing scores.}

@@ -2,10 +2,10 @@
 % Please edit documentation in R/utils_plot.R
 \name{getMajorMatrix}
 \alias{getMajorMatrix}
-\title{Get the SOUP majority matrix}
+\title{Get the SOUP hard assignment matrix}
 \usage{
 getMajorMatrix(memberships, Ks, cell.type, ref.lab = "Reference")
 }
 \description{
-Get the SOUP majority matrix
+Get the SOUP hard assignment matrix
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils_plot.R
 \name{plotMultipleGeneTimeline}
 \alias{plotMultipleGeneTimeline}
-\title{Plot Multiple Gene Expressions along Trajectory}
+\title{Plot multiple gene expressions along trajectory}
 \usage{
 plotMultipleGeneTimeline(expr, genelist, timeline,
   x.title = "SOUP trajectory", y.title = "Expression", nrow = NULL,

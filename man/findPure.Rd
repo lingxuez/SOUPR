@@ -10,7 +10,7 @@ findPure(expr, type = "log", ext.prop = NULL, pure.prop = 0.5)
 \item{expr}{a cell-by-gene expression matrix, either the raw counts or log-transformed expressions.}
 
 \item{type}{"log" if \code{expr} has been normalized and log-transformed (default),
-or "count" (default) \code{expr} contains the raw counts.}
+or "count" if \code{expr} contains the raw counts.}
 
 \item{ext.prop}{(optional) the proportion of extreme neighbors for each cell, such that \code{ext.prop*n.cells} is roughly the number of pure cells \emph{per cluster}. 
 By default, \code{ext.prop=0.1} for less than 1,000 cells, and \code{ext.prop=0.05} for larger datasets.}

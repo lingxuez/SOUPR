@@ -6,6 +6,14 @@
 \usage{
 predictTheta(new.expr, t.centers)
 }
+\arguments{
+\item{new.expr}{cell-by-gene expression matrix}
+
+\item{t.centers}{transposed center matrix, n.gene-by-K}
+}
+\value{
+The predicted membership matrix.
+}
 \description{
 Predict the membership for new data points
 }

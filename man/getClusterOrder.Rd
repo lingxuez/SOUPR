@@ -2,7 +2,7 @@
 % Please edit documentation in R/SOUPtime.R
 \name{getClusterOrder}
 \alias{getClusterOrder}
-\title{Order Clusters}
+\title{Order clusters}
 \usage{
 getClusterOrder(cor.center, k.start = 1)
 }

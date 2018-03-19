@@ -13,7 +13,7 @@ SOUP(expr, Ks = 3, type = "log", i.pure = NULL, ext.prop = NULL,
 \item{Ks}{number of clusters, can be a single integer or a list of integers.}
 
 \item{type}{"log" if \code{expr} has been normalized and log-transformed (default),
-or "count" (default) \code{expr} contains the raw counts.
+or "count" if \code{expr} contains the raw counts.
 It is recommended to use the log scale, which usually gives better results in practice.}
 
 \item{i.pure}{(optional) the indices of the pure cells. By default is \code{NULL}, and SOUP will infer the pure list.
@@ -38,10 +38,4 @@ A list containing  \describe{
 }
 \description{
 A semi-soft clustering algorithm for single cells.
-}
-\examples{
-select.genes = zeisel$select.genes
-counts = zeisel$counts[, colnames(counts) \%in\% select.genes]
-soup.out = SOUP(counts, Ks=7, type="count")
-
 }

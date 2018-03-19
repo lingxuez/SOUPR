@@ -11,7 +11,7 @@ selectGenes(expr, type = "count", SPCA = TRUE, DESCEND = TRUE,
 \item{expr}{a cell-by-gene expression matrix, either the raw counts or log-transformed expressions.}
 
 \item{type}{"count" if \code{expr} contains the raw counts (default), 
-or "log" if \code{expr} has been normalized and log-transformed (default).}
+or "log" if \code{expr} has been normalized and log-transformed.}
 
 \item{SPCA}{boolean, whether to use SPCA or not.}
 

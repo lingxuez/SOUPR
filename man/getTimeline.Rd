@@ -2,7 +2,7 @@
 % Please edit documentation in R/SOUPtime.R
 \name{getTimeline}
 \alias{getTimeline}
-\title{Estimate Developmental Timeline}
+\title{Estimate developmental trajectory}
 \usage{
 getTimeline(membership, centers, k.start = NULL, k.end = NULL)
 }

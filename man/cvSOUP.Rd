@@ -2,10 +2,10 @@
 % Please edit documentation in R/cvSOUP.R
 \name{cvSOUP}
 \alias{cvSOUP}
-\title{Cross Validation for SOUP}
+\title{Cross validation for SOUP}
 \usage{
-cvSOUP(expr, type = "log", nfold = 10, nCV = 10, Ks = c(2:10),
-  mc.cores = 10, verbose = TRUE)
+cvSOUP(expr, type = "log", Ks = c(2:10), nfold = 10, nCV = 10,
+  mc.cores = 1, seeds = NULL, verbose = TRUE)
 }
 \arguments{
 \item{expr}{A cell-by-gene expression matrix, either the raw counts or log-transformed expressions.}
@@ -13,16 +13,18 @@ cvSOUP(expr, type = "log", nfold = 10, nCV = 10, Ks = c(2:10),
 \item{type}{"log" if \code{expr} has been normalized and log-transformed (default),
 or "count" (default) \code{expr} contains the raw counts.}
 
-\item{nfold}{Number of folds}
-
-\item{nCV}{Number of repetitions}
-
 \item{Ks}{A sequence of cluster numbers}
 
-\item{mc.cores}{Number of cores for parallelization}
+\item{nfold}{(optional) Number of folds, default is 10}
 
-\item{verbose}{Whether to print progress}
+\item{nCV}{(optional) Number of repetitions, default is 10}
+
+\item{mc.cores}{(optional) Number of cores for parallelization, default is 1 without parallelization}
+
+\item{seeds}{(optional) A list of seeds to be used, with length nCV, default is NULL}
+
+\item{verbose}{(optional) Whether to print progress, default is TRUE}
 }
 \description{
-Cross Validation for SOUP
+Cross validation for SOUP
 }

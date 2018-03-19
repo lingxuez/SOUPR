@@ -48,7 +48,7 @@ heatmapKseq <- function(memberships, Ks, cell.type, ref.lab="Reference",
 }
 
 
-#' Get the SOUP majority matrix
+#' Get the SOUP hard assignment matrix
 #' 
 #' @export
 #' 
@@ -169,7 +169,7 @@ plotContTable <- function(est_label, true_label, short.names=NULL, xlab="Referen
   return(g)
 }
 
-#' Plot Gene Expression along Trajectory
+#' Plot gene expression along trajectory
 #' 
 #' @param expr The cell-by-gene expression matrix to be visualized
 #' @param marker.gene The gene to be visualized; must be one of the columns of \code{expr}
@@ -203,7 +203,7 @@ plotGeneTimeline <- function(expr, marker.gene, timeline,
   return(g)
 }
 
-#' Plot Multiple Gene Expressions along Trajectory
+#' Plot multiple gene expressions along trajectory
 #' 
 #' Expression levels of multiple genes along trajectory, arranged on a grid of plots.
 #' 
