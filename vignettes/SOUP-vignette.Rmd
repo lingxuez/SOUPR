@@ -1,0 +1,114 @@
+---
+title: "A quick tour of SOUP"
+author: "Lingxue Zhu"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{A quick tour of SOUP}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This vignette walks through two data examples and illustrates the basic usage of `SOUP`.
+
+```{r}
+library(devtools)
+devtools::install_github("lingxuez/SOUP")
+library(SOUP)
+```
+
+## Fetal Brain Data
+
+### Gene selection
+
+```{r}
+cell.info = camp$cell.info
+log.expr = log2(scaleRowSums(camp$counts)*(10^6) + 1)
+log.expr = log.expr[, colnames(log.expr) %in% camp$select.genes]
+dim(log.expr)
+```
+
+### SOUP clustering
+```{r}
+soup.out = SOUP(log.expr, Ks=c(2:5), type="log", nstart=50)
+```
+
+```{r}
+heatmapKseq(soup.out$memberships, soup.out$Ks, cell.info$cell.type)
+```
+
+```{r}
+K.use = 5
+i.K = match(K.use, soup.out$Ks)
+
+## pick the ending point: with the most N3 cells
+soup.label = soup.out$major.labels[[i.K]]
+k.end = which.max(table(soup.label, cell.info$cell.type)[, "N3"])
+soup.timeline = getTimeline(membership = soup.out$memberships[[i.K]],
+                            centers = soup.out$centers[[i.K]],
+                            k.end=k.end)
+## visualize timeline
+genelist = c("CCNB1", "PAX6", "SOX2", "NEUROD6", "MEF2C")
+plotMultipleGeneTimeline(expr=log.expr, 
+                         genelist=genelist,
+                         timeline=soup.timeline, 
+                         nrow=2, ncol=3)
+```
+
+### Cross Validation
+
+
+Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+
+- Never uses retina figures
+- Has a smaller default figure size
+- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+
+## Vignette Info
+
+Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+
+## Styles
+
+The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+
+    output: 
+      rmarkdown::html_vignette:
+        css: mystyles.css
+
+## Figures
+
+The figure sizes have been customised so that you can easily put two images side-by-side. 
+
+```{r, fig.show='hold'}
+plot(1:10)
+plot(10:1)
+```
+
+You can enable figure captions by `fig_caption: yes` in YAML:
+
+    output:
+      rmarkdown::html_vignette:
+        fig_caption: yes
+
+Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+
+## More Examples
+
+You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(mtcars, 10))
+```
+
+Also a quote using `>`:
+
+> "He who gives up [code] safety for [code] speed deserves neither."
+([via](https://twitter.com/hadleywickham/status/504368538874703872))

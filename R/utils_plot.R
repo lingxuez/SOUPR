@@ -20,7 +20,7 @@ heatmapKseq <- function(memberships, Ks, cell.type, ref.lab="Reference") {
 
   ## Heatmap
   dat3$Cell = factor(c(1:nrow(dat3)))
-  dat3 <- melt(dat3, id.var="Cell")
+  dat3 <- reshape2::melt(dat3, id.var="Cell")
   dat3$value <- as.factor(dat3$value)
   g <- ggplot2::ggplot(dat3, aes(Cell, variable)) +
     geom_tile(aes(fill = value)) +
@@ -145,12 +145,12 @@ plotContTable <- function(est_label, true_label, short.names=NULL, xlab="Referen
   cont.table$Reference = factor(short.names, levels=short.names)
   colnames(cont.table) <- c(sub.clusters, "Reference")
   
-  dat3 <- melt(cont.table, id.var="Reference")
+  dat3 <- reshape2::melt(cont.table, id.var="Reference")
   grid.labels = as.character(dat3$value)
   grid.labels[grid.labels == "0"] = ""
   
   
-  g <- ggplot(dat3, aes(Reference, variable)) +
+  g <- ggplot2::ggplot(dat3, aes(Reference, variable)) +
     geom_tile(aes(fill = value)) +
     geom_text(aes(label= grid.labels), size=4.5) +
     scale_fill_gradient(low="white", high="purple") +
@@ -183,7 +183,7 @@ plotGeneTimeline <- function(expr, marker.gene, timeline,
                              x.title="SOUP trajectory", y.title="Expression", title="") {
   df = data.frame(Expression=expr[, marker.gene],
                   Trajectory=timeline)
-  g = ggplot(df, aes(x=Trajectory, y=Expression)) +
+  g = ggplot2::ggplot(df, aes(x=Trajectory, y=Expression)) +
     geom_point(aes(color=Trajectory)) +
     labs(x=x.title, y=y.title, title=title) +
     scale_colour_gradient(low="#56B1F7", high="#132B43") +
@@ -225,7 +225,7 @@ plotMultipleGeneTimeline <- function(expr, genelist, timeline,
                                 x.title=x.title, y.title=y.title, title=gene)))
   }
   
-  g.multi = ggarrange(plotlist=g.list, nrow=nrow, ncol=ncol,
+  g.multi = ggpubr::ggarrange(plotlist=g.list, nrow=nrow, ncol=ncol,
                       common.legend=TRUE, legend="right")
   return(g.multi)
 }

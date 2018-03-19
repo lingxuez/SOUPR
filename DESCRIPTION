@@ -22,5 +22,9 @@ Imports: RSpectra,
     RColorBrewer,
     PMA,
     gplots,
-    ggplot2
+    ggplot2,
+    ggpubr
 RoxygenNote: 6.0.1
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
