@@ -14,6 +14,7 @@
 #' 
 cvSOUP <- function(expr, type="log", Ks=c(2:10), 
                    nfold=10, nCV=10, mc.cores=1,
+                   ext.prop=NULL, pure.prop=0.5,
                    seeds=NULL, verbose=TRUE) {
   
   cv.errors = matrix(NA, nrow=nCV, ncol=length(Ks))
@@ -30,7 +31,8 @@ cvSOUP <- function(expr, type="log", Ks=c(2:10),
     }
     cv.out = cv.error.SOUP(expr=expr, type=type, 
                            seed=seed,
-                           nfold=nfold, Ks=Ks)
+                           nfold=nfold, Ks=Ks,
+                           ext.prop=ext.prop, pure.prop=pure.prop)
     cv.errors[i.cv, ] = cv.out$cvm
     cv.sds[i.cv, ] = cv.out$cvsd
   }
@@ -60,11 +62,12 @@ cvSOUP <- function(expr, type="log", Ks=c(2:10),
 #' 
 #' @export
 cv.error.SOUP <- function(expr, type="log", Ks=c(2:10), 
-                          nfold=10, seed=NULL, mc.cores=1) {
+                          nfold=10, seed=NULL, mc.cores=1,
+                          ext.prop=NULL, pure.prop=0.5) {
   
   ## cross validation
   doCV <- function(fold, nfold, i.permute.ind, 
-                   expr, Ks, type) {
+                   expr, Ks, type, ext.prop, pure.prop) {
     n.sc = nrow(expr)
     n.gene = ncol(expr)
     n.K = length(Ks)
@@ -78,6 +81,7 @@ cv.error.SOUP <- function(expr, type="log", Ks=c(2:10),
     
     ## SOUP on training set
     soup.out = SOUP(expr=expr[-i.test, ], Ks=Ks, type=type,
+                    ext.prop=ext.prop, pure.prop=pure.prop,
                     nstart=50, verbose=FALSE)
     
     ## Predict on test set
@@ -104,6 +108,7 @@ cv.error.SOUP <- function(expr, type="log", Ks=c(2:10),
   cv.errors = parallel::mclapply(c(1:nfold), FUN=doCV, 
                                    nfold=nfold, i.permute.ind=i.permute.ind, 
                                    expr=expr, Ks=Ks, type=type,
+                                   ext.prop=ext.prop, pure.prop=pure.prop,
                                    mc.cores=mc.cores, mc.preschedule=TRUE)
   cv.errors = matrix(unlist(cv.errors), nrow=nfold, byrow=TRUE)
   

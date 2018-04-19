@@ -23,7 +23,9 @@ Imports: RSpectra,
     PMA,
     gplots,
     ggplot2,
-    ggpubr
+    ggpubr,
+    ape,
+    igraph
 RoxygenNote: 6.0.1
 Suggests: knitr,
     rmarkdown
