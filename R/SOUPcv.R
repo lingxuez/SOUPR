@@ -29,9 +29,8 @@ cvSOUP <- function(expr, type="log", Ks=c(2:10),
     } else {
       seed = NULL
     }
-    cv.out = cv.error.SOUP(expr=expr, type=type, 
-                           seed=seed,
-                           nfold=nfold, Ks=Ks,
+    cv.out = cv.error.SOUP(expr=expr, type=type, Ks=Ks, 
+                           nfold=nfold, seed=seed, mc.cores=mc.cores,
                            ext.prop=ext.prop, pure.prop=pure.prop)
     cv.errors[i.cv, ] = cv.out$cvm
     cv.sds[i.cv, ] = cv.out$cvsd
