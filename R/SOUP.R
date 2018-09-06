@@ -39,12 +39,13 @@ SOUP <- function(expr, Ks=3,
   }
   
   ## find pure cells by ranking the purity score
+  
   if (is.null(i.pure)) {
     if (verbose) {
       cat("Finding pure cells...\n")
     }
-    purity.out = findPure(expr=expr,
-                          type=type,
+    A = getSimilarity(expr, type=type)
+    purity.out = findPure(A=A,
                           ext.prop=ext.prop, 
                           pure.prop=pure.prop)
     i.pure = purity.out$i.pure
@@ -61,6 +62,7 @@ SOUP <- function(expr, Ks=3,
   memberships = list()
   centers = list()
   major.labels = list()
+  pure.kms = list()
   for (K in Ks) {
     ## by default nPC=K, and should be at least K
     nPC = max(nPC, K, na.rm=TRUE)
@@ -82,6 +84,7 @@ SOUP <- function(expr, Ks=3,
     major = apply(opt.out$membership, 1, nnet::which.is.max)
     
     ## record
+    pure.kms = c(pure.kms, km.pure)
     memberships = c(memberships, list(opt.out$membership))
     centers = c(centers, list(opt.out$center))
     major.labels = c(major.labels, list(major))
@@ -92,7 +95,8 @@ SOUP <- function(expr, Ks=3,
               centers=centers,
               major.labels=major.labels,
               purity=purity,
-              i.pure=i.pure))
+              i.pure=i.pure,
+              pure.kms=pure.kms))
   
 }
 
@@ -100,9 +104,7 @@ SOUP <- function(expr, Ks=3,
 #' 
 #' Find the list of pure cells with the highest purity scores.
 #' 
-#' @param expr a cell-by-gene expression matrix, either the raw counts or log-transformed expressions. 
-#' @param type "log" if \code{expr} has been normalized and log-transformed (default),
-#'     or "count" if \code{expr} contains the raw counts.
+#' @param A cell-by-cell similarity matrix. 
 #' @param ext.prop (optional) the proportion of extreme neighbors for each cell, such that \code{ext.prop*n.cells} is roughly the number of pure cells \emph{per cluster}. 
 #' By default, \code{ext.prop=0.1} for less than 1,000 cells, and \code{ext.prop=0.05} for larger datasets.
 #' @param pure.prop (optional) the proportion of pure cells in the data. By default \code{pure.prop=0.5}.
@@ -113,9 +115,8 @@ SOUP <- function(expr, Ks=3,
 #' }
 #' 
 #' @export
-findPure <- function(expr, type="log", ext.prop = NULL, pure.prop = 0.5) {
+findPure <- function(A, ext.prop = NULL, pure.prop = 0.5) {
   ## cell-cell similarity matrix
-  A = getSimilarity(expr, type=type)
   n = nrow(A)
   
   ## proportion of extreme neighbors

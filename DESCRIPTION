@@ -25,7 +25,8 @@ Imports: RSpectra,
     ggplot2,
     ggpubr,
     ape,
-    igraph
+    igraph,
+    princurve
 RoxygenNote: 6.0.1
 Suggests: knitr,
     rmarkdown
