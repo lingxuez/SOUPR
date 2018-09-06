@@ -4,8 +4,8 @@
 \alias{cv.error.SOUP}
 \title{Compute cross validation errors}
 \usage{
-cv.error.SOUP(expr, type = "log", Ks = c(2:10), nfold = 10, seed = NULL,
-  mc.cores = 1)
+cv.error.SOUP(expr, type = "log", Ks = c(2:10), nfold = 10,
+  seed = NULL, mc.cores = 1, ext.prop = NULL, pure.prop = 0.5)
 }
 \arguments{
 \item{expr}{A cell-by-gene expression matrix, either the raw counts or log-transformed expressions.}

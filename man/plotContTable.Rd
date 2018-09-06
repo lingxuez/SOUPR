@@ -4,7 +4,8 @@
 \alias{plotContTable}
 \title{Visualize contingency table}
 \usage{
-plotContTable(est_label, true_label, short.names = NULL, xlab = "Reference")
+plotContTable(est_label, true_label, short.names = NULL,
+  xlab = "Reference")
 }
 \arguments{
 \item{est_label}{Estimated cluster assignments, a vector of characters or factors}

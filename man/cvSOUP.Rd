@@ -5,7 +5,8 @@
 \title{Cross validation for SOUP}
 \usage{
 cvSOUP(expr, type = "log", Ks = c(2:10), nfold = 10, nCV = 10,
-  mc.cores = 1, seeds = NULL, verbose = TRUE)
+  mc.cores = 1, ext.prop = NULL, pure.prop = 0.5, seeds = NULL,
+  verbose = TRUE)
 }
 \arguments{
 \item{expr}{A cell-by-gene expression matrix, either the raw counts or log-transformed expressions.}

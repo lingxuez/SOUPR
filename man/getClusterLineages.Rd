@@ -8,10 +8,20 @@ getClusterLineages(centers, end.clust = NULL, start.clust = NULL,
   dist.fun = NULL)
 }
 \arguments{
-\item{centers}{K-by-p matrix of cluster centers}
+\item{centers}{K-by-p' matrix of cluster centers, where p' is usually for the low-dimensional space.}
+
+\item{end.clust}{(optional) the end point}
+
+\item{start.clust}{(optional) the starting point}
 }
 \description{
-Given cluster centers, construct a linearge using minimum-spanning tree.
-A starting or ending cluster can be specified.
-This code is adapted from the `getLineages` method in R package `slingshot`.
+Given cluster centers, construct a linearge using minimum spanning tree (MST) with Euclidean distances.
+It is often suggested to use a low-dimensional space for identifying MST.
+A starting or ending cluster can be specified if prior knowledge is available.
+This code is adapted from the `getLineages` method in the R package `slingshot`.
+}
+\references{
+Street K, Risso D, Fletcher RB, et al. (2017). 
+"Slingshot: Cell lineage and pseudotime inference for single-cell transcriptomics."
+ \emph{bioRxiv. 10.1101/128843}
 }

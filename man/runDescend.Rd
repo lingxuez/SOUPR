@@ -7,8 +7,8 @@
 runDescend(count.matrix, ercc.matrix = NULL, scaling.consts = NULL,
   Z = NULL, Z0 = NULL, n.cores = 1, cl = NULL, type = "FORK",
   do.LRT.test = F, family = c("Poisson", "Negative Binomial"),
-  NB.size = 100, show.message = T, verbose = T, ercc.trueMol = NULL,
-  control = list())
+  NB.size = 100, show.message = T, verbose = T,
+  ercc.trueMol = NULL, control = list())
 }
 \arguments{
 \item{count.matrix}{the observed UMI count matrix. Each row is a gene and each column is a cell. The column sums are used as the input for \code{scaling.consts} when both \code{ercc.matrix} and \code{scaling.consts} are NULL.}

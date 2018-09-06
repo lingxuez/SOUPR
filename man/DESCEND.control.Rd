@@ -6,8 +6,8 @@
 \usage{
 DESCEND.control(n.points = 50, nStart = 2, nStart.lrt = 2,
   max.quantile = 0.95, max.sparse = c(0.99, 20), LRT.Z.select = T,
-  LRT.Z0.select = T, LRT.Z.values = 0, zeroInflate = T, dense.add.0 = T,
-  only.integer = F, rel.info.range = c(5e-04, 0.01),
+  LRT.Z0.select = T, LRT.Z.values = 0, zeroInflate = T,
+  dense.add.0 = T, only.integer = F, rel.info.range = c(5e-04, 0.01),
   rel.info.guide = 0.005, c0.start = 1, aStart = 1, bStart = 0,
   gStart = 0, start.sd = 0.2, penalty.Z0 = T, pDegree = 5,
   max.c0.iter = 5, c0.min = 1e-05)

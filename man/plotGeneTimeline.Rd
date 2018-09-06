@@ -4,8 +4,9 @@
 \alias{plotGeneTimeline}
 \title{Plot gene expression along trajectory}
 \usage{
-plotGeneTimeline(expr, marker.gene, timeline, x.title = "SOUP trajectory",
-  y.title = "Expression", title = "", font.size = 10)
+plotGeneTimeline(expr, marker.gene, timeline,
+  x.title = "SOUP trajectory", y.title = "Expression", title = "",
+  font.size = 10)
 }
 \arguments{
 \item{expr}{The cell-by-gene expression matrix to be visualized}

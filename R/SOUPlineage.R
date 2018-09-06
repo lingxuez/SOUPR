@@ -195,6 +195,8 @@ getLineageTime <- function(lineages, membership) {
 #'  \emph{bioRxiv. 10.1101/128843}
 #'   
 #' @return A vector containing the list of descendants
+#' 
+#' @export
 getDescendants <- function(clus, forest, parent = NULL){
   ## children (excluding its parent)
   children.idx = which(forest[, clus] == 1)
@@ -280,8 +282,13 @@ getDescendants <- function(clus, forest, parent = NULL){
 #' @references Street K, Risso D, Fletcher RB, et al. (2017). 
 #' "Slingshot: Cell lineage and pseudotime inference for single-cell transcriptomics."
 #'  \emph{bioRxiv. 10.1101/128843}
+#'  
+#' @importFrom princurve project_to_curve
 #' @export
-getLineageCurves <- function(expr.ld, lineages, centers, membership,
+getLineageCurves <- function(expr.ld, 
+                             lineages, 
+                             centers, 
+                             membership,
                              shrink=TRUE, 
                              smoother = 'smooth.spline',
                              extend="y",
@@ -380,13 +387,16 @@ getLineageCurves <- function(expr.ld, lineages, centers, membership,
                             ctr, 
                             ctr + 10*pca$sdev[1] *
                               pca$rotation[,1])
-      curve <- get_lam(expr.ld[idx, ,drop = FALSE], s = line.initial,
-                        stretch = 9999)
+      curve <- project_to_curve(expr.ld[idx, ,drop = FALSE], 
+                                s = line.initial,
+                                stretch = 9999)
       
       # do this twice because all points should have projections
       # on all lineages, but only those points on the lineage
       # should extend it
-      pcurve <- get_lam(expr.ld, s = curve$s[curve$tag,], stretch=0)
+      pcurve <- project_to_curve(expr.ld, 
+                                 s = curve$s[curve$ord, ,drop = FALSE],
+                                 stretch=0)
       pcurve$dist <- abs(pcurve$dist) 
       # ^ force non-negative distances
       pcurve$lambda <- pcurve$lambda - min(pcurve$lambda, 
@@ -401,19 +411,22 @@ getLineageCurves <- function(expr.ld, lineages, centers, membership,
     ## project in-branch cells to the initial piece-wise linear curve
     ## potentially extend the line in the end point
     if(extend == 'y'){
-      curve <- get_lam(expr.ld[idx, ,drop = FALSE], s = line.initial,
-                        stretch = 9999)
+      curve <- project_to_curve(expr.ld[idx, ,drop = FALSE], 
+                                s = line.initial,
+                                stretch = 9999)
       curve$dist <- abs(curve$dist)
     }
     if(extend == 'n'){
-      curve <- get_lam(expr.ld[idx, ,drop = FALSE], s = line.initial,
-                        stretch = 0)
+      curve <- project_to_curve(expr.ld[idx, ,drop = FALSE], 
+                                s = line.initial,
+                                stretch = 0)
       curve$dist <- abs(curve$dist)
     }
     
     ## project *all* cells to the curve, without extending it
-    pcurve <- get_lam(expr.ld, s = curve$s[curve$tag, ,drop=FALSE], 
-                      stretch=0)
+    pcurve <- project_to_curve(expr.ld, 
+                               s = curve$s[curve$ord, ,drop = FALSE],
+                               stretch=0)
     
     # force non-negative distances
     pcurve$dist <- abs(pcurve$dist)
@@ -478,7 +491,7 @@ getLineageCurves <- function(expr.ld, lineages, centers, membership,
                                w = pcurve$w)[ord]
       }
       ## new projection
-      new.pcurve <- get_lam(expr.ld, s = s, stretch = stretch)
+      new.pcurve <- project_to_curve(expr.ld, s = s, stretch = stretch)
       new.pcurve$dist <- abs(new.pcurve$dist)
       new.pcurve$lambda <- new.pcurve$lambda - 
         min(new.pcurve$lambda, na.rm = TRUE)
@@ -631,32 +644,6 @@ getLineageCurves <- function(expr.ld, lineages, centers, membership,
 }
 
 
-#' Projection Index
-#' 
-#' Helper function to project data points `x` to a given curve `s`.
-#' Similar to the `get.lam` function in the `princurve` package.
-#' 
-get_lam <- function(x, s, tag, stretch = 2){
-  storage.mode(x) <- "double"
-  storage.mode(s) <- "double"
-  storage.mode(stretch) <- "double"
-  if (!missing(tag)) 
-    s <- s[tag, ]
-  np <- dim(x)
-  if (length(np) != 2) 
-    stop("get_lam needs a matrix input")
-  n <- np[1]
-  p <- np[2]
-  tt <- .Fortran("getlam", n, p, x, s = x, lambda = double(n), 
-                 tag = integer(n), dist = double(n), as.integer(nrow(s)), 
-                 s, stretch, double(p), double(p), 
-                 PACKAGE = "princurve")[c("s","tag", "lambda", "dist")]
-  #tt$dist <- sum(tt$dist)
-  class(tt) <- "principal.curve"
-  tt
-}
-
-
 avg_curves <- function(pcurves, X, stretch = 2){
   p <- ncol(pcurves[[1]]$s)
   lambdas.all <- lapply(pcurves, function(pcv){pcv$lambda})
@@ -675,7 +662,7 @@ avg_curves <- function(pcurves, X, stretch = 2){
     })
     return(rowMeans(dim.all))
   })
-  avg.curve <- get_lam(X, avg, stretch=stretch)
+  avg.curve <- princurve::project_to_curve(X, avg, stretch=stretch)
   avg.curve$w <- rowMeans(sapply(pcurves, function(p){ p$w }))
   return(avg.curve)
 }
@@ -724,19 +711,23 @@ percent_shrinkage <- function(crv, share.idx, method = 'cosine'){
 }
 
 shrink_to_avg <- function(pcurve, avg.curve, pct, X, stretch = 2){
+  n <- nrow(pcurve$s)
   p <- ncol(pcurve$s)
   lam <- pcurve$lambda
-  s <- sapply(1:p,function(jj){
+  s <- vapply(seq_len(p),function(jj){
     orig.jj <- pcurve$s[,jj]
     avg.jj <- approx(x = avg.curve$lambda, y = avg.curve$s[,jj], xout = lam,
                      rule = 2)$y
     return(avg.jj * pct + orig.jj * (1-pct))
-  })
+  }, rep(0,n))
   w <- pcurve$w
-  pcurve <- get_lam(X, s, pcurve$tag, stretch = stretch)
+  pcurve <- princurve::project_to_curve(X, 
+                                        as.matrix(s[pcurve$ord, ,drop = FALSE]), 
+                                        stretch = stretch)
   pcurve$w <- w
   return(pcurve)
 }
+
 
 cumMin <- function(x,time){
   sapply(seq_along(x),function(i){ min(x[time <= time[i]]) })
