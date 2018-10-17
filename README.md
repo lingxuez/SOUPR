@@ -1,4 +1,4 @@
-# SOUP
+# SOUPR
 
 R package for SOUP.
 
@@ -35,4 +35,4 @@ devtools::install_github("lingxuez/SOUP")
 ```
 
 ## Examples
-Please follow the [vignette](https://github.com/lingxuez/SOUP/blob/master/vignettes/SOUP-vignette.pdf) for an example of using this R package on a fetal brain dataset, which re-produces the results in our paper.
+Please follow the [vignette](https://github.com/lingxuez/SOUPR/blob/master/vignettes/SOUP-vignette.pdf) for an example of using this R package on a fetal brain dataset, which re-produces the results in our paper.
